@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+  <title>YTM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d1117;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+      height: 100vh;
+    }
+    #title-bar {
+      height: 36px;
+      background: #161b22;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      -webkit-app-region: drag;
+      border-bottom: 1px solid #30363d;
+      padding: 0 8px 0 16px;
+      user-select: none;
+    }
+    #app-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e6edf3;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    #app-title svg { opacity: 0.9; }
+    #window-controls {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      -webkit-app-region: no-drag;
+    }
+    .ctrl-btn {
+      width: 32px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: #8b949e;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ctrl-btn:hover { background: #30363d; color: #e6edf3; }
+    #close-btn:hover { background: #da3633; color: #fff; }
+    #mini-btn {
+      color: #58a6ff;
+      font-size: 10px;
+      margin-right: 4px;
+    }
+    #mini-btn:hover { background: #1f6feb; color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <div id="app-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4e45">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+      </svg>
+      YTM
+    </div>
+    <div id="window-controls">
+      <button class="ctrl-btn" id="mini-btn" title="Mini Player">&#9654; Mini</button>
+      <button class="ctrl-btn" id="settings-btn" title="Settings">&#9881;</button>
+      <button class="ctrl-btn" id="min-btn" title="Minimize">&#8211;</button>
+      <button class="ctrl-btn" id="max-btn" title="Maximize">&#9723;</button>
+      <button class="ctrl-btn" id="close-btn" title="Close">&#10005;</button>
+    </div>
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>
