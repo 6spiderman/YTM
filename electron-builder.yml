@@ -1,0 +1,19 @@
+appId: com.go2cloud.ytm
+productName: YTM
+directories:
+  output: dist-installer
+files:
+  - dist/**/*
+  - assets/**/*
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: assets/icons/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: YTM
