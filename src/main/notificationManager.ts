@@ -70,16 +70,16 @@ export class NotificationManager {
         : '';
       const audioXml = sound ? '' : '<audio silent="true"/>';
 
-      const xml = `<toast><visual><binding template="ToastGeneric"><text>${this.escapeXml(title)}</text><text>${this.escapeXml(body)}</text>${imgXml}</binding></visual><actions><action content="&#9664;&#9664; Prev" arguments="ytm://action/previousTrack" activationType="protocol"/><action content="&#9199; Play / Pause" arguments="ytm://action/playPause" activationType="protocol"/><action content="Next &#9654;&#9654;" arguments="ytm://action/nextTrack" activationType="protocol"/></actions>${audioXml}</toast>`;
+      // Thumbar icons are asarUnpacked so they are accessible as real file:// paths
+      const iconBase = (app.isPackaged ? app.getAppPath() + '.unpacked' : app.getAppPath())
+        .replace(/\\/g, '/');
+      const btnIcon = (name: string) => `file:///${iconBase}/assets/icons/${name}.png`;
 
-      console.log('[NotificationManager] toastXml:', xml);
+      const xml = `<toast><visual><binding template="ToastGeneric"><text>${this.escapeXml(title)}</text><text>${this.escapeXml(body)}</text>${imgXml}</binding></visual><actions><action content="" imageUri="${btnIcon('thumbar-prev')}" arguments="ytm://action/previousTrack" activationType="protocol"/><action content="" imageUri="${btnIcon('thumbar-play')}" arguments="ytm://action/playPause" activationType="protocol"/><action content="" imageUri="${btnIcon('thumbar-next')}" arguments="ytm://action/nextTrack" activationType="protocol"/></actions>${audioXml}</toast>`;
 
       const n = new Notification({ toastXml: xml });
       n.on('failed', (_event, error) => {
         console.error('[NotificationManager] Toast notification failed:', error);
-      });
-      n.on('show', () => {
-        console.log('[NotificationManager] Toast notification shown successfully');
       });
       n.show();
     } catch (err) {
@@ -91,7 +91,7 @@ export class NotificationManager {
   }
 
   private showNotification(title: string, body: string, icon: string | undefined, sound: boolean): void {
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' && app.isPackaged) {
       this.showToastNotification(title, body, icon, sound);
     } else {
       const n = new Notification({

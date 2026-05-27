@@ -1,4 +1,5 @@
 import { app, ipcMain } from 'electron';
+import { execSync } from 'child_process';
 import { PlayerState } from '../types';
 import { SettingsManager } from './settingsManager';
 import { WindowManager } from './windowManager';
@@ -33,6 +34,20 @@ if (!gotLock) {
     app.setAppUserModelId('YTM');
     if (app.isPackaged) {
       app.setAsDefaultProtocolClient('ytm');
+    }
+
+    // Register AUMID in HKCU so Windows WinRT toast banners appear for toastXml notifications.
+    // ToastNotificationManagerCompat (used by plain Notification) works without this;
+    // ToastNotificationManager.CreateToastNotifier(aumid) (used by toastXml) requires it.
+    if (process.platform === 'win32') {
+      try {
+        execSync(
+          `powershell -NoProfile -NonInteractive -Command "New-Item -Path 'HKCU:\\Software\\Classes\\AppUserModelId\\YTM' -Force | Out-Null; Set-ItemProperty -Path 'HKCU:\\Software\\Classes\\AppUserModelId\\YTM' -Name 'DisplayName' -Value 'YTM' -Type String"`,
+          { stdio: 'ignore', windowsHide: true }
+        );
+      } catch (_e) {
+        // Non-critical - toastXml notifications will still be delivered to Action Center
+      }
     }
     settingsManager = new SettingsManager();
     const settings = settingsManager.get();

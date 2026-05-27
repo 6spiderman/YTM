@@ -6,6 +6,8 @@ files:
   - dist/**/*
   - assets/**/*
   - package.json
+asarUnpack:
+  - assets/icons/thumbar-*.png
 win:
   target:
     - target: nsis
