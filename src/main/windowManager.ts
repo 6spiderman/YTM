@@ -35,6 +35,7 @@ export class WindowManager {
         preload: path.join(__dirname, '../preload/preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        sandbox: false,
       },
     });
 
@@ -185,6 +186,7 @@ export class WindowManager {
         preload: path.join(__dirname, '../preload/preload-mini.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        sandbox: false,
       },
     });
 
@@ -214,6 +216,7 @@ export class WindowManager {
         preload: path.join(__dirname, '../preload/preload-settings.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        sandbox: false,
       },
     });
 
