@@ -19,10 +19,20 @@ let capturingAction: ShortcutAction | null = null;
 let pendingShortcuts: ShortcutMap;
 
 async function init() {
-  currentSettings = await window.settingsApi.getSettings();
-  pendingShortcuts = { ...currentSettings.shortcuts };
-  populateForm();
-  buildShortcutsTable();
+  try {
+    currentSettings = await window.settingsApi.getSettings();
+    pendingShortcuts = { ...currentSettings.shortcuts };
+    populateForm();
+    buildShortcutsTable();
+  } catch (err) {
+    const container = document.getElementById('shortcuts-container');
+    if (container) {
+      container.innerHTML = `<p style="color:#da3633;padding:8px 0;font-size:12px;">
+        Settings failed to load: ${err}<br>
+        settingsApi available: ${typeof (window as any).settingsApi}
+      </p>`;
+    }
+  }
 }
 
 function populateForm() {

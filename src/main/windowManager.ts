@@ -222,6 +222,11 @@ export class WindowManager {
 
     this.settingsWindow.loadFile(path.join(__dirname, '../renderer/settings/settings.html'));
 
+    // Open DevTools automatically so errors are visible during development
+    if (!app.isPackaged) {
+      this.settingsWindow.webContents.openDevTools({ mode: 'detach' });
+    }
+
     this.settingsWindow.on('closed', () => {
       this.settingsWindow = null;
     });
