@@ -125,7 +125,7 @@ export class PlayerBridge extends EventEmitter {
   }
 
   private async adjustVolume(delta: number): Promise<void> {
-    if (!this.webContents) return;
+    if (!this.webContents || this.webContents.isDestroyed()) return;
     const script = `
       (function() {
         var s = document.querySelector('#volume-slider');

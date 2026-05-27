@@ -79,6 +79,7 @@ if (!gotLock) {
 
   app.on('before-quit', () => {
     shortcutManager?.unregisterAll();
+    playerBridge?.destroy();
   });
 
   app.on('window-all-closed', () => {

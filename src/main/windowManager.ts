@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, screen, app } from 'electron';
+import { BrowserWindow, WebContentsView, app } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
@@ -225,8 +225,9 @@ export class WindowManager {
   }
 
   closeSettings(): void {
+    // The 'closed' event handler on the window sets settingsWindow = null.
+    // Just trigger the close - don't null here to avoid a double-null race.
     this.settingsWindow?.close();
-    this.settingsWindow = null;
   }
 
   applySettings(newSettings: Settings): void {

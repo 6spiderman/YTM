@@ -61,7 +61,7 @@ export class NotificationManager {
 
   private fetchAlbumArt(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const tmpPath = path.join(app.getPath('temp'), 'ytm-album-art.jpg');
+      const tmpPath = path.join(app.getPath('temp'), `ytm-album-art-${Date.now()}.jpg`);
       const request = net.request(url);
       const chunks: Buffer[] = [];
 
