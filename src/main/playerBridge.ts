@@ -26,9 +26,20 @@ const STATE_SCRIPT = `
     var albumArt = getAttr('#thumbnail img', 'src') ||
                    getAttr('ytmusic-player-bar img', 'src') || '';
 
-    var playBtn = document.querySelector('#play-pause-button') ||
-                  document.querySelector('.play-pause-button');
-    var isPlaying = playBtn ? playBtn.getAttribute('aria-label') === 'Pause' : false;
+    // Prefer the video element - most reliable across YTM UI changes
+    var videoEl = document.querySelector('video');
+    var isPlaying = false;
+    if (videoEl) {
+      isPlaying = !videoEl.paused && !videoEl.ended && videoEl.readyState > 2;
+    } else {
+      // Fallback: aria-label on play/pause button (case-insensitive contains)
+      var playBtn = document.querySelector('#play-pause-button') ||
+                    document.querySelector('.play-pause-button');
+      if (playBtn) {
+        var label = (playBtn.getAttribute('aria-label') || '').toLowerCase();
+        isPlaying = label.includes('pause');
+      }
+    }
 
     var likeBtn = document.querySelector('#like-button-renderer .like') ||
                   document.querySelector('ytmusic-like-button-renderer [aria-label="Like"]');
