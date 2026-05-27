@@ -32,6 +32,7 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 | 🗂️ **System tray** | Lives quietly in your tray, shows now-playing in the tooltip and context menu |
 | 🪟 **Mini player** | Compact 320x90 overlay that floats above other windows |
 | 🔔 **Track notifications** | Windows toast notification on every track change, with album art |
+| 🖱️ **Taskbar media controls** | Previous / Play-Pause / Next buttons in the taskbar thumbnail on hover |
 | ⚙️ **Settings UI** | All preferences in one place - no config files to edit |
 | 🔒 **Session persistence** | Sign in once, stay signed in forever |
 | 🚀 **Start with Windows** | Optional auto-start on login |
@@ -130,6 +131,7 @@ Access settings from the **⚙ gear button** in the title bar, or right-click th
 | Body template | What appears as the notification body |
 | Show album art | Display the album artwork in the notification |
 | Play notification sound | Play the Windows notification sound |
+| Action buttons | Previous, Play/Pause, and Next buttons appear directly in the notification (installed app only) |
 
 **Template tokens:**
 
