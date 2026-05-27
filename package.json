@@ -5,7 +5,7 @@
   "author": "YTM Contributors",
   "main": "dist/main/index.js",
   "scripts": {
-    "dev": "concurrently \"tsc -w\" \"cpx 'src/renderer/**/*.html' dist/renderer --watch\" \"electron .\"",
+    "dev": "concurrently \"tsc -w\" \"cpx src/renderer/**/*.html dist/renderer --watch\" \"electron .\"",
     "build": "tsc && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --win",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
