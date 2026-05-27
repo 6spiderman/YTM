@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' https: data:;">
+  <title>YTM Mini</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #e6edf3;
+      font-family: system-ui, -apple-system, sans-serif;
+      width: 320px;
+      height: 90px;
+      overflow: hidden;
+      -webkit-app-region: drag;
+      user-select: none;
+      border-radius: 8px;
+    }
+    #container {
+      display: flex;
+      align-items: center;
+      height: 90px;
+      padding: 8px;
+      gap: 8px;
+    }
+    #album-art {
+      width: 56px;
+      height: 56px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #2d2d4e;
+      flex-shrink: 0;
+    }
+    #track-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    #track-title {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #e6edf3;
+    }
+    #track-artist {
+      font-size: 11px;
+      color: #8b949e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      -webkit-app-region: no-drag;
+      flex-shrink: 0;
+    }
+    .ctrl {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: #8b949e;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ctrl:hover { background: #2d2d4e; color: #e6edf3; }
+    #play-btn { font-size: 16px; color: #e6edf3; }
+    #expand-btn { color: #58a6ff; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <img id="album-art" src="" alt="Album Art">
+    <div id="track-info">
+      <div id="track-title">Not playing</div>
+      <div id="track-artist"></div>
+    </div>
+    <div id="controls">
+      <button class="ctrl" id="prev-btn" title="Previous">&#9664;&#9664;</button>
+      <button class="ctrl" id="play-btn" title="Play/Pause">&#9654;</button>
+      <button class="ctrl" id="next-btn" title="Next">&#9654;&#9654;</button>
+      <button class="ctrl" id="expand-btn" title="Expand">&#9723;</button>
+    </div>
+  </div>
+  <script src="mini.js"></script>
+</body>
+</html>
