@@ -8,7 +8,7 @@ const volLabel = document.getElementById('volume-label')!;
 window.miniApi.onStateChanged((state) => {
   titleEl.textContent = state.currentTrack || 'Not playing';
   artistEl.textContent = state.currentArtist || '';
-  playBtn.textContent = state.isPlaying ? '⏸' : '▶';
+  playBtn.textContent = state.isPlaying ? '❚❚' : '▶';
   if (state.albumArtUrl) {
     albumArtEl.src = state.albumArtUrl;
     albumArtEl.style.display = 'block';
