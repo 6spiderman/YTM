@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, app } from 'electron';
+import { BrowserWindow, WebContentsView, app, nativeImage } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
@@ -76,10 +76,14 @@ export class WindowManager {
       this.saveMainWindowBounds();
     });
 
-    // Forward player state to renderers
+    // Forward player state to renderers and update thumbar
     this.playerBridge.on('state-changed', (state) => {
       this.broadcastState(state);
+      this.updateThumbarButtons(state.isPlaying);
     });
+
+    // Initialise thumbar buttons (paused state until first track)
+    this.updateThumbarButtons(false);
   }
 
   private positionYtmView(): void {
@@ -252,6 +256,33 @@ export class WindowManager {
       ...s,
       windowBounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height },
     });
+  }
+
+  private updateThumbarButtons(isPlaying: boolean): void {
+    if (!this.mainWindow) return;
+
+    const icon = (name: string) =>
+      nativeImage.createFromPath(
+        path.join(app.getAppPath(), 'assets', 'icons', `${name}.png`)
+      );
+
+    this.mainWindow.setThumbarButtons([
+      {
+        tooltip: 'Previous Track',
+        icon: icon('thumbar-prev'),
+        click: () => { this.playerBridge.execute('previousTrack'); },
+      },
+      {
+        tooltip: isPlaying ? 'Pause' : 'Play',
+        icon: icon(isPlaying ? 'thumbar-pause' : 'thumbar-play'),
+        click: () => { this.playerBridge.execute('playPause'); },
+      },
+      {
+        tooltip: 'Next Track',
+        icon: icon('thumbar-next'),
+        click: () => { this.playerBridge.execute('nextTrack'); },
+      },
+    ]);
   }
 
   getYtmWebContents() {
