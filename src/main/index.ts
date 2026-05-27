@@ -19,12 +19,21 @@ if (!gotLock) {
   let playerBridge: PlayerBridge;
   let settingsManager: SettingsManager;
 
-  app.on('second-instance', () => {
-    windowManager?.focusActiveWindow();
+  app.on('second-instance', (_event, argv) => {
+    const protocolUrl = argv.find((arg: string) => arg.startsWith('ytm://action/'));
+    if (protocolUrl) {
+      const action = protocolUrl.replace('ytm://action/', '');
+      playerBridge?.execute(action);
+    } else {
+      windowManager?.focusActiveWindow();
+    }
   });
 
   app.whenReady().then(() => {
     app.setAppUserModelId('YTM');
+    if (app.isPackaged) {
+      app.setAsDefaultProtocolClient('ytm');
+    }
     settingsManager = new SettingsManager();
     const settings = settingsManager.get();
 
