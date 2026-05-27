@@ -49,14 +49,64 @@ export class NotificationManager {
     }
   }
 
-  private showNotification(title: string, body: string, icon: string | undefined, sound: boolean): void {
-    const n = new Notification({
-      title,
-      body,
-      icon,
-      silent: !sound,
-    });
+  private escapeXml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  private showToastNotification(
+    title: string,
+    body: string,
+    icon: string | undefined,
+    sound: boolean
+  ): void {
+    const imgXml = icon
+      ? `<image placement="appLogoOverride" hint-crop="circle" src="file:///${icon.replace(/\\/g, '/')}"/>`
+      : '';
+    const audioXml = sound ? '' : '<audio silent="true"/>';
+
+    const xml = `<toast>
+  <visual>
+    <binding template="ToastGeneric">
+      <text>${this.escapeXml(title)}</text>
+      <text>${this.escapeXml(body)}</text>
+      ${imgXml}
+    </binding>
+  </visual>
+  <actions>
+    <action content="&#9664;&#9664; Prev"
+            arguments="ytm://action/previousTrack"
+            activationType="protocol"/>
+    <action content="&#9199; Play / Pause"
+            arguments="ytm://action/playPause"
+            activationType="protocol"/>
+    <action content="Next &#9654;&#9654;"
+            arguments="ytm://action/nextTrack"
+            activationType="protocol"/>
+  </actions>
+  ${audioXml}
+</toast>`;
+
+    const n = new Notification({ toastXml: xml });
     n.show();
+  }
+
+  private showNotification(title: string, body: string, icon: string | undefined, sound: boolean): void {
+    if (process.platform === 'win32' && app.isPackaged) {
+      this.showToastNotification(title, body, icon, sound);
+    } else {
+      const n = new Notification({
+        title,
+        body,
+        icon,
+        silent: !sound,
+      });
+      n.show();
+    }
   }
 
   private fetchAlbumArt(url: string): Promise<string> {
