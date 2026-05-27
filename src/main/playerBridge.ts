@@ -124,6 +124,25 @@ export class PlayerBridge extends EventEmitter {
     }
   }
 
+  async setVolume(value: number): Promise<void> {
+    if (!this.webContents || this.webContents.isDestroyed()) return;
+    const clamped = Math.min(100, Math.max(0, Math.round(value)));
+    const script = `
+      (function() {
+        var s = document.querySelector('#volume-slider');
+        if (!s) return;
+        s.value = ${clamped};
+        s.dispatchEvent(new Event('change', { bubbles: true }));
+        s.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      })()
+    `;
+    try {
+      await this.webContents.executeJavaScript(script);
+    } catch (err) {
+      this.emit('bridge:selector-error', err);
+    }
+  }
+
   private async adjustVolume(delta: number): Promise<void> {
     if (!this.webContents || this.webContents.isDestroyed()) return;
     const script = `

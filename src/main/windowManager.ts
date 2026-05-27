@@ -180,7 +180,7 @@ export class WindowManager {
       x: miniPlayerBounds.x,
       y: miniPlayerBounds.y,
       width: 320,
-      height: 90,
+      height: 110,
       resizable: false,
       frame: false,
       alwaysOnTop: miniPlayerAlwaysOnTop,
@@ -195,6 +195,14 @@ export class WindowManager {
     });
 
     this.miniWindow.loadFile(path.join(__dirname, '../renderer/mini-player/mini.html'));
+
+    // Send current state immediately so the mini-player shows up-to-date info
+    this.miniWindow.webContents.on('did-finish-load', () => {
+      const lastState = this.playerBridge.getLastState();
+      if (lastState) {
+        this.miniWindow?.webContents.send('player:state-changed', lastState);
+      }
+    });
 
     this.miniWindow.on('close', () => {
       const bounds = this.miniWindow!.getBounds();

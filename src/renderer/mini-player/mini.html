@@ -12,7 +12,7 @@
       color: #e6edf3;
       font-family: system-ui, -apple-system, sans-serif;
       width: 320px;
-      height: 90px;
+      height: 110px;
       overflow: hidden;
       -webkit-app-region: drag;
       user-select: none;
@@ -21,9 +21,29 @@
     #container {
       display: flex;
       align-items: center;
-      height: 90px;
+      height: 80px;
       padding: 8px;
       gap: 8px;
+    }
+    #volume-row {
+      display: flex;
+      align-items: center;
+      padding: 0 10px 6px;
+      gap: 6px;
+      -webkit-app-region: no-drag;
+    }
+    #volume-row span {
+      font-size: 10px;
+      color: #6e7681;
+      flex-shrink: 0;
+      width: 20px;
+      text-align: center;
+    }
+    #volume-control {
+      flex: 1;
+      height: 4px;
+      cursor: pointer;
+      accent-color: #58a6ff;
     }
     #album-art {
       width: 56px;
@@ -93,6 +113,11 @@
       <button class="ctrl" id="next-btn" title="Next">&#9654;&#9654;</button>
       <button class="ctrl" id="expand-btn" title="Expand">&#9723;</button>
     </div>
+  </div>
+  <div id="volume-row">
+    <span>&#9835;</span>
+    <input type="range" id="volume-control" min="0" max="100" value="100">
+    <span id="volume-label">100</span>
   </div>
   <script src="mini.js"></script>
 </body>

@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('miniApi', {
   sendAction: (action: string) => {
     ipcRenderer.send('player:action', { action });
   },
+  setVolume: (value: number) => {
+    ipcRenderer.send('player:set-volume', { value });
+  },
   expandPlayer: () => {
     ipcRenderer.send('window:show-full');
   },

@@ -16,6 +16,7 @@ declare global {
       onStateChanged: (callback: (state: PlayerState) => void) => void;
       offStateChanged: () => void;
       sendAction: (action: string) => void;
+      setVolume: (value: number) => void;
       expandPlayer: () => void;
     };
     settingsApi: {
