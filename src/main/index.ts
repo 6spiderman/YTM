@@ -24,7 +24,7 @@ if (!gotLock) {
   });
 
   app.whenReady().then(() => {
-    app.setAppUserModelId('com.go2cloud.ytm');
+    app.setAppUserModelId('YTM');
     settingsManager = new SettingsManager();
     const settings = settingsManager.get();
 

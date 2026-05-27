@@ -54,16 +54,28 @@ function buildShortcutsTable() {
     const display = document.createElement('span');
     display.className = 'shortcut-display';
     display.id = `display-${action}`;
-    display.textContent = pendingShortcuts[action];
+    display.textContent = pendingShortcuts[action] || '(not set)';
+    if (!pendingShortcuts[action]) display.classList.add('unset');
 
     const changeBtn = document.createElement('button');
     changeBtn.className = 'change-btn';
-    changeBtn.textContent = 'Change';
+    changeBtn.textContent = pendingShortcuts[action] ? 'Change' : 'Set';
     changeBtn.addEventListener('click', () => startCapture(action, display, changeBtn));
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'change-btn clear-btn';
+    clearBtn.textContent = '✕';
+    clearBtn.title = 'Clear shortcut';
+    clearBtn.style.display = pendingShortcuts[action] ? 'flex' : 'none';
+    clearBtn.addEventListener('click', () => {
+      pendingShortcuts[action] = '';
+      buildShortcutsTable();
+    });
 
     row.appendChild(nameEl);
     row.appendChild(display);
     row.appendChild(changeBtn);
+    row.appendChild(clearBtn);
     container.appendChild(row);
   }
 }

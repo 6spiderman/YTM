@@ -17,10 +17,11 @@ describe('SettingsManager', () => {
     sm = new SettingsManager();
   });
 
-  it('returns default shortcuts when nothing saved', () => {
+  it('returns empty default shortcuts when nothing saved', () => {
     const s = sm.get();
-    expect(s.shortcuts.playPause).toBe('Ctrl+Alt+Space');
-    expect(s.shortcuts.nextTrack).toBe('Ctrl+Alt+Right');
+    expect(s.shortcuts.playPause).toBe('');
+    expect(s.shortcuts.nextTrack).toBe('');
+    expect(Object.values(s.shortcuts).every(v => v === '')).toBe(true);
   });
 
   it('returns default notification settings', () => {
