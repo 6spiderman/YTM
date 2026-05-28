@@ -98,8 +98,10 @@
     .ctrl:hover { background: #2d2d4e; color: #e6edf3; }
     #play-btn { font-size: 15px; color: #e6edf3; }
     #expand-btn { color: #58a6ff; font-size: 9px; }
-    #like-btn.liked { color: #3fb950; }
-    #dislike-btn.disliked { color: #da3633; }
+    #like-btn, #dislike-btn { filter: grayscale(100%); opacity: 0.45; font-size: 13px; }
+    #like-btn:hover, #dislike-btn:hover { filter: none; opacity: 0.8; }
+    #like-btn.liked { filter: none; opacity: 1; }
+    #dislike-btn.disliked { filter: none; opacity: 1; }
   </style>
 </head>
 <body>
@@ -113,8 +115,8 @@
       <button class="ctrl" id="prev-btn" title="Previous">&#9664;&#9664;</button>
       <button class="ctrl" id="play-btn" title="Play/Pause">&#9654;</button>
       <button class="ctrl" id="next-btn" title="Next">&#9654;&#9654;</button>
-      <button class="ctrl" id="like-btn" title="Like">&#9650;</button>
-      <button class="ctrl" id="dislike-btn" title="Dislike">&#9660;</button>
+      <button class="ctrl" id="like-btn" title="Like">&#x1F44D;</button>
+      <button class="ctrl" id="dislike-btn" title="Dislike">&#x1F44E;</button>
       <button class="ctrl" id="expand-btn" title="Expand">&#9723;</button>
     </div>
   </div>
