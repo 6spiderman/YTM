@@ -41,13 +41,15 @@ const STATE_SCRIPT = `
       }
     }
 
-    var likeBtn = document.querySelector('#like-button-renderer .like') ||
-                  document.querySelector('ytmusic-like-button-renderer [aria-label="Like"]');
-    var dislikeBtn = document.querySelector('#like-button-renderer .dislike') ||
-                     document.querySelector('ytmusic-like-button-renderer [aria-label="Dislike"]');
+    var likeBtn = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Like"]') ||
+                  document.querySelector('ytmusic-like-button-renderer [aria-label="Like"]') ||
+                  document.querySelector('ytmusic-like-button-renderer button:first-of-type');
+    var dislikeBtn = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Dislike"]') ||
+                     document.querySelector('ytmusic-like-button-renderer [aria-label="Dislike"]') ||
+                     document.querySelector('ytmusic-like-button-renderer button:last-of-type');
     var likeStatus = 'none';
-    if (likeBtn && likeBtn.getAttribute('aria-pressed') === 'true') likeStatus = 'like';
-    else if (dislikeBtn && dislikeBtn.getAttribute('aria-pressed') === 'true') likeStatus = 'dislike';
+    if (likeBtn && (likeBtn.getAttribute('aria-pressed') === 'true' || likeBtn.classList.contains('active'))) likeStatus = 'like';
+    else if (dislikeBtn && (dislikeBtn.getAttribute('aria-pressed') === 'true' || dislikeBtn.classList.contains('active'))) likeStatus = 'dislike';
 
     var volSlider = document.querySelector('#volume-slider');
     var volume = volSlider ? Number(volSlider.value) : 100;
@@ -72,14 +74,16 @@ const ACTIONS: Record<string, string> = {
   previousTrack: `(function(){ var b = document.querySelector('.previous-button'); if(b) b.click(); })()`,
   likeTrack: `
     (function() {
-      var b = document.querySelector('#like-button-renderer .like') ||
-              document.querySelector('ytmusic-like-button-renderer [aria-label="Like"]');
+      var b = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Like"]') ||
+              document.querySelector('ytmusic-like-button-renderer [aria-label="Like"]') ||
+              document.querySelector('ytmusic-like-button-renderer button:first-of-type');
       if (b) b.click();
     })()`,
   dislikeTrack: `
     (function() {
-      var b = document.querySelector('#like-button-renderer .dislike') ||
-              document.querySelector('ytmusic-like-button-renderer [aria-label="Dislike"]');
+      var b = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Dislike"]') ||
+              document.querySelector('ytmusic-like-button-renderer [aria-label="Dislike"]') ||
+              document.querySelector('ytmusic-like-button-renderer button:last-of-type');
       if (b) b.click();
     })()`,
 };

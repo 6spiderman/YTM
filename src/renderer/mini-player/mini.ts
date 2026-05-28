@@ -2,6 +2,8 @@ const titleEl = document.getElementById('track-title')!;
 const artistEl = document.getElementById('track-artist')!;
 const albumArtEl = document.getElementById('album-art') as HTMLImageElement;
 const playBtn = document.getElementById('play-btn')!;
+const likeBtn = document.getElementById('like-btn')!;
+const dislikeBtn = document.getElementById('dislike-btn')!;
 const volControl = document.getElementById('volume-control') as HTMLInputElement;
 const volLabel = document.getElementById('volume-label')!;
 
@@ -16,6 +18,8 @@ window.miniApi.onStateChanged((state) => {
     albumArtEl.src = '';
     albumArtEl.style.display = 'none';
   }
+  likeBtn.classList.toggle('liked', state.likeStatus === 'like');
+  dislikeBtn.classList.toggle('disliked', state.likeStatus === 'dislike');
   // Only update volume slider when not being dragged
   if (document.activeElement !== volControl) {
     volControl.value = String(state.volume);
@@ -33,6 +37,14 @@ document.getElementById('play-btn')?.addEventListener('click', () => {
 
 document.getElementById('next-btn')?.addEventListener('click', () => {
   window.miniApi.sendAction('nextTrack');
+});
+
+document.getElementById('like-btn')?.addEventListener('click', () => {
+  window.miniApi.sendAction('likeTrack');
+});
+
+document.getElementById('dislike-btn')?.addEventListener('click', () => {
+  window.miniApi.sendAction('dislikeTrack');
 });
 
 document.getElementById('expand-btn')?.addEventListener('click', () => {
