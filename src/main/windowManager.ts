@@ -305,6 +305,10 @@ export class WindowManager {
         click: () => { this.playerBridge.execute('nextTrack'); },
       },
     ]);
+
+    // Clip the DWM live preview to 1x1 so the hover popup shows only the
+    // thumbar buttons, not the full window content.
+    win.setThumbnailClip({ x: 0, y: 0, width: 1, height: 1 });
   }
 
   reloadYtmView(): void {
