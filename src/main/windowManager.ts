@@ -11,6 +11,9 @@ export class WindowManager {
   private miniWindow: BrowserWindow | null = null;
   private thumbnailWindow: BrowserWindow | null = null;
   private settingsWindow: BrowserWindow | null = null;
+  private taskbarWindow(): BrowserWindow | null {
+    return this.isMiniMode ? this.miniWindow : this.mainWindow;
+  }
   private ytmView: WebContentsView | null = null;
   private isMiniMode = false;
 
@@ -31,7 +34,7 @@ export class WindowManager {
       minHeight: 600,
       frame: false,
       show: false,
-      skipTaskbar: true,
+      skipTaskbar: false,
       backgroundColor: '#0d1117',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload.js'),
@@ -86,10 +89,10 @@ export class WindowManager {
       this.saveMainWindowBounds();
     });
 
-    // Forward player state to all renderers; update thumbar on thumbnail window only
+    // Forward player state to all renderers; update thumbar on the active taskbar window
     this.playerBridge.on('state-changed', (state) => {
       this.broadcastState(state);
-      this.updateThumbarButtons(state.isPlaying, this.thumbnailWindow);
+      this.updateThumbarButtons(state.isPlaying, this.taskbarWindow());
     });
 
     // Forward progress ticks to mini-player only (avoids per-second tray rebuilds)
@@ -97,14 +100,13 @@ export class WindowManager {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
     });
 
-    // Create the off-screen thumbnail window that owns the taskbar presence
+    // Keep thumbnail window for DWM live preview content (off-screen, skipTaskbar)
     this.createThumbnailWindow();
   }
 
   private createThumbnailWindow(): void {
-    // Position so the bottom 1px of the window sits on-screen — DWM only composites
-    // windows that overlap the virtual screen; y = bounds.y - 89 keeps 89px hidden
-    // above the top edge while leaving 1px inside bounds for DWM to render.
+    // Off-screen window whose rendered content DWM uses for the taskbar live preview.
+    // Bottom 1px is on-screen so DWM composites it; the rest is hidden above the top edge.
     const { bounds } = screen.getPrimaryDisplay();
     const W = 300;
     const H = 90;
@@ -115,7 +117,7 @@ export class WindowManager {
       height: H,
       frame: false,
       show: true,
-      skipTaskbar: false,
+      skipTaskbar: true,
       resizable: false,
       minimizable: false,
       maximizable: false,
@@ -132,36 +134,14 @@ export class WindowManager {
       path.join(__dirname, '../renderer/thumbnail/thumbnail.html')
     );
 
-    // Ignore all mouse events so the hidden window never intercepts clicks
+    // The 1px strip at the top of the screen should not intercept user clicks
     this.thumbnailWindow.setIgnoreMouseEvents(true);
 
-    // Seed with last known state if available (e.g. thumbnail window recreated mid-session)
+    // Seed with last known state if available
     this.thumbnailWindow.webContents.on('did-finish-load', () => {
       const lastState = this.playerBridge.getLastState();
       if (lastState) {
         this.thumbnailWindow?.webContents.send('player:state-changed', lastState);
-        this.updateThumbarButtons(lastState.isPlaying, this.thumbnailWindow);
-      }
-    });
-
-    // Taskbar icon click: toggle the active player window (show if hidden, hide if visible)
-    this.thumbnailWindow.on('focus', () => {
-      this.thumbnailWindow?.blur();
-      if (this.isMiniMode && this.miniWindow) {
-        if (this.miniWindow.isVisible() && !this.miniWindow.isMinimized()) {
-          this.miniWindow.hide();
-        } else {
-          this.miniWindow.show();
-          this.miniWindow.focus();
-        }
-      } else if (this.mainWindow) {
-        if (this.mainWindow.isVisible() && !this.mainWindow.isMinimized()) {
-          this.mainWindow.hide();
-        } else {
-          if (this.mainWindow.isMinimized()) this.mainWindow.restore();
-          this.mainWindow.show();
-          this.mainWindow.focus();
-        }
       }
     });
 
@@ -195,7 +175,7 @@ export class WindowManager {
   broadcastState(state: unknown): void {
     this.mainWindow?.webContents.send('player:state-changed', state);
     this.miniWindow?.webContents.send('player:state-changed', state);
-    this.thumbnailWindow?.webContents.send('player:state-changed', state);
+    this.thumbnailWindow?.webContents.send('player:state-changed', state); // DWM preview content
   }
 
   focusActiveWindow(): void {
@@ -249,15 +229,23 @@ export class WindowManager {
       this.createMiniWindow();
     }
     this.isMiniMode = true;
+    this.mainWindow?.setSkipTaskbar(true);
     this.mainWindow?.hide();
+    this.miniWindow?.setSkipTaskbar(false);
     this.miniWindow?.show();
+    const lastState = this.playerBridge.getLastState();
+    this.updateThumbarButtons(lastState?.isPlaying ?? false, this.miniWindow);
   }
 
   showFullPlayer(): void {
     this.isMiniMode = false;
+    this.miniWindow?.setSkipTaskbar(true);
     this.miniWindow?.hide();
+    this.mainWindow?.setSkipTaskbar(false);
     this.mainWindow?.show();
     this.mainWindow?.focus();
+    const lastState = this.playerBridge.getLastState();
+    this.updateThumbarButtons(lastState?.isPlaying ?? false, this.mainWindow);
   }
 
   private createMiniWindow(): void {
