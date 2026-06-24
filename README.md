@@ -30,9 +30,9 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 |---------|---------|
 | 🎹 **Global shortcuts** | Control playback from anywhere - even when the app is hidden |
 | 🗂️ **System tray** | Lives quietly in your tray, shows now-playing in the tooltip and context menu |
-| 🪟 **Mini player** | Compact 320x90 overlay that floats above other windows |
+| 🪟 **Mini player** | Compact 360x130 overlay with progress bar, volume, shuffle, and repeat |
 | 🔔 **Track notifications** | Windows toast notification on every track change, with album art |
-| 🖱️ **Taskbar media controls** | Previous / Play-Pause / Next buttons in the taskbar thumbnail on hover |
+| 🖱️ **Taskbar media controls** | Previous / Play-Pause / Next buttons in the taskbar thumbnail on hover - works in both full and mini player modes |
 | ⚙️ **Settings UI** | All preferences in one place - no config files to edit |
 | 🔒 **Session persistence** | Sign in once, stay signed in forever |
 | 🚀 **Start with Windows** | Optional auto-start on login |
@@ -154,8 +154,13 @@ Click the **▶ Mini** button in the title bar (or press your Toggle Mini Player
 The mini player shows:
 - Album art thumbnail
 - Track title and artist
-- Previous / Play-Pause / Next buttons
+- Shuffle, Previous, Play-Pause, Next, and Repeat buttons (YTM-style SVG icons)
+- Like / Dislike buttons
+- Track progress bar with current and total time (click to seek)
+- Vertical volume slider
 - An expand button to return to the full window
+
+The taskbar thumbnail controls (Previous / Play-Pause / Next) remain active whether you are in full or mini player mode.
 
 It remembers its screen position between sessions.
 
