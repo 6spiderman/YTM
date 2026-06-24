@@ -32,7 +32,7 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 | 🗂️ **System tray** | Lives quietly in your tray, shows now-playing in the tooltip and context menu |
 | 🪟 **Mini player** | Compact 360x130 overlay with progress bar, volume slider, shuffle, and repeat |
 | 🔔 **Track notifications** | Windows toast notification on every track change, with album art |
-| 🖱️ **Taskbar thumbnail** | Hover the taskbar icon to see album art, track info, and media controls - consistent in both full and mini player modes |
+| 🖱️ **Taskbar controls** | Hover the taskbar icon to get Previous / Play-Pause / Next buttons without opening the window |
 | ⚙️ **Settings UI** | All preferences in one place - no config files to edit |
 | 🔒 **Session persistence** | Sign in once, stay signed in forever |
 | 🚀 **Start with Windows** | Optional auto-start on login |
@@ -147,14 +147,11 @@ It remembers its screen position between sessions.
 
 ---
 
-## 🖱️ Taskbar Thumbnail
+## 🖱️ Taskbar Controls
 
-Hovering over the YTM taskbar icon shows a thumbnail with:
-- Album art
-- Track title and artist
-- Previous / Play-Pause / Next media control buttons
+Hovering over the YTM taskbar icon shows **Previous / Play-Pause / Next** media control buttons directly in the Windows thumbnail toolbar. No window preview is shown - just the buttons.
 
-This thumbnail is always consistent - it displays the same information whether you are using the full player or the mini player.
+Clicking the taskbar icon minimizes and restores the window the same way any Windows app does. Both full player and mini player modes work the same way.
 
 ---
 
@@ -199,7 +196,6 @@ src/
   renderer/       # UI for each window (HTML + TypeScript)
     main-window/  # Full player title bar
     mini-player/  # Compact 360x130 overlay
-    thumbnail/    # Off-screen taskbar thumbnail card
     settings/     # Settings window
   types.ts        # Shared TypeScript interfaces
 scripts/
