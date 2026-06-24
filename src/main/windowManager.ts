@@ -54,6 +54,11 @@ export class WindowManager {
     this.positionYtmView();
     this.ytmView.webContents.loadURL('https://music.youtube.com');
 
+    // Apply thumbar as soon as the main window shell is ready
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
+    });
+
     // Wire player bridge to the ytmView webContents
     this.ytmView.webContents.on('did-finish-load', () => {
       this.playerBridge.attachWebContents(this.ytmView!.webContents);
@@ -88,8 +93,6 @@ export class WindowManager {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
     });
 
-    // Initialise thumbar buttons (paused state until first track)
-    this.updateThumbarButtons(false, this.mainWindow);
   }
 
   private positionYtmView(): void {
