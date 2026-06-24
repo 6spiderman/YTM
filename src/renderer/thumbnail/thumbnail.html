@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' https: data:;">
+  <title>YTM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #e6edf3;
+      font-family: system-ui, -apple-system, sans-serif;
+      width: 300px;
+      height: 90px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      user-select: none;
+    }
+    #album-art {
+      width: 70px;
+      height: 70px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #2d2d4e;
+      flex-shrink: 0;
+      display: none;
+    }
+    #album-art.visible { display: block; }
+    #track-info { flex: 1; min-width: 0; }
+    #track-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #e6edf3;
+    }
+    #track-artist {
+      font-size: 11px;
+      color: #8b949e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <img id="album-art" src="" alt="">
+  <div id="track-info">
+    <div id="track-title">Not playing</div>
+    <div id="track-artist"></div>
+  </div>
+  <script src="thumbnail.js"></script>
+</body>
+</html>

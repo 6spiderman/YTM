@@ -9,6 +9,7 @@ const TITLE_BAR_HEIGHT = 36;
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
   private miniWindow: BrowserWindow | null = null;
+  private thumbnailWindow: BrowserWindow | null = null;
   private settingsWindow: BrowserWindow | null = null;
   private ytmView: WebContentsView | null = null;
   private isMiniMode = false;
@@ -30,6 +31,7 @@ export class WindowManager {
       minHeight: 600,
       frame: false,
       show: false,
+      skipTaskbar: true,
       backgroundColor: '#0d1117',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload.js'),
@@ -54,12 +56,11 @@ export class WindowManager {
     this.positionYtmView();
     this.ytmView.webContents.loadURL('https://music.youtube.com');
 
-    // Show window and apply thumbar only after Windows has fully registered it
+    // Show main window once content is ready (no flash)
     this.mainWindow.once('ready-to-show', () => {
       const { startMinimised } = this.settings.get();
       if (!startMinimised) {
         this.mainWindow?.show();
-        this.updateThumbarButtons(false, this.mainWindow);
       }
     });
 
@@ -85,11 +86,10 @@ export class WindowManager {
       this.saveMainWindowBounds();
     });
 
-    // Forward player state to renderers and update thumbar
+    // Forward player state to all renderers; update thumbar on thumbnail window only
     this.playerBridge.on('state-changed', (state) => {
       this.broadcastState(state);
-      this.updateThumbarButtons(state.isPlaying, this.mainWindow);
-      this.updateThumbarButtons(state.isPlaying, this.miniWindow);
+      this.updateThumbarButtons(state.isPlaying, this.thumbnailWindow);
     });
 
     // Forward progress ticks to mini-player only (avoids per-second tray rebuilds)
@@ -97,6 +97,60 @@ export class WindowManager {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
     });
 
+    // Create the off-screen thumbnail window that owns the taskbar presence
+    this.createThumbnailWindow();
+  }
+
+  private createThumbnailWindow(): void {
+    this.thumbnailWindow = new BrowserWindow({
+      x: -32000,
+      y: -32000,
+      width: 300,
+      height: 90,
+      frame: false,
+      show: true,
+      skipTaskbar: false,
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      backgroundColor: '#1a1a2e',
+      webPreferences: {
+        preload: path.join(__dirname, '../preload/preload-mini.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: false,
+      },
+    });
+
+    this.thumbnailWindow.loadFile(
+      path.join(__dirname, '../renderer/thumbnail/thumbnail.html')
+    );
+
+    // Seed with last known state if available (e.g. thumbnail window recreated mid-session)
+    this.thumbnailWindow.webContents.on('did-finish-load', () => {
+      const lastState = this.playerBridge.getLastState();
+      if (lastState) {
+        this.thumbnailWindow?.webContents.send('player:state-changed', lastState);
+        this.updateThumbarButtons(lastState.isPlaying, this.thumbnailWindow);
+      }
+    });
+
+    // Redirect taskbar-button clicks to the actual active player window
+    this.thumbnailWindow.on('focus', () => {
+      this.thumbnailWindow?.blur();
+      if (this.isMiniMode && this.miniWindow) {
+        this.miniWindow.show();
+        this.miniWindow.focus();
+      } else if (this.mainWindow) {
+        this.mainWindow.show();
+        this.mainWindow.focus();
+      }
+    });
+
+    // Prevent user from closing the thumbnail window while the app is running
+    this.thumbnailWindow.on('close', (e) => {
+      if (!this.quitting) e.preventDefault();
+    });
   }
 
   private positionYtmView(): void {
@@ -123,16 +177,17 @@ export class WindowManager {
   broadcastState(state: unknown): void {
     this.mainWindow?.webContents.send('player:state-changed', state);
     this.miniWindow?.webContents.send('player:state-changed', state);
+    this.thumbnailWindow?.webContents.send('player:state-changed', state);
   }
 
   focusActiveWindow(): void {
     if (this.isMiniMode) {
+      this.miniWindow?.show();
       this.miniWindow?.focus();
     } else {
       if (this.mainWindow?.isMinimized()) this.mainWindow.restore();
       this.mainWindow?.show();
       this.mainWindow?.focus();
-      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
     }
   }
 
@@ -178,7 +233,6 @@ export class WindowManager {
     this.isMiniMode = true;
     this.mainWindow?.hide();
     this.miniWindow?.show();
-    this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.miniWindow);
   }
 
   showFullPlayer(): void {
@@ -186,7 +240,6 @@ export class WindowManager {
     this.miniWindow?.hide();
     this.mainWindow?.show();
     this.mainWindow?.focus();
-    this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
   }
 
   private createMiniWindow(): void {
@@ -200,7 +253,7 @@ export class WindowManager {
       resizable: false,
       frame: false,
       alwaysOnTop: miniPlayerAlwaysOnTop,
-      skipTaskbar: false,
+      skipTaskbar: true,
       backgroundColor: '#1a1a2e',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload-mini.js'),
@@ -212,13 +265,12 @@ export class WindowManager {
 
     this.miniWindow.loadFile(path.join(__dirname, '../renderer/mini-player/mini.html'));
 
-    // Send current state immediately so the mini-player shows up-to-date info
+    // Send current state immediately so mini-player shows up-to-date info on open
     this.miniWindow.webContents.on('did-finish-load', () => {
       const lastState = this.playerBridge.getLastState();
       if (lastState) {
         this.miniWindow?.webContents.send('player:state-changed', lastState);
       }
-      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.miniWindow);
     });
 
     this.miniWindow.on('close', () => {
@@ -251,7 +303,6 @@ export class WindowManager {
 
     this.settingsWindow.loadFile(path.join(__dirname, '../renderer/settings/settings.html'));
 
-    // Open DevTools automatically so errors are visible during development
     if (!app.isPackaged) {
       this.settingsWindow.webContents.openDevTools({ mode: 'detach' });
     }
@@ -262,8 +313,6 @@ export class WindowManager {
   }
 
   closeSettings(): void {
-    // The 'closed' event handler on the window sets settingsWindow = null.
-    // Just trigger the close - don't null here to avoid a double-null race.
     this.settingsWindow?.close();
   }
 

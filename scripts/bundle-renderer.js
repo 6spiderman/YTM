@@ -13,6 +13,10 @@ const entries = [
     entryPoints: ['src/renderer/settings/settings.ts'],
     outfile: 'dist/renderer/settings/settings.js',
   },
+  {
+    entryPoints: ['src/renderer/thumbnail/thumbnail.ts'],
+    outfile: 'dist/renderer/thumbnail/thumbnail.js',
+  },
 ];
 
 const baseOptions = {
