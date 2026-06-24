@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, app, nativeImage } from 'electron';
+import { BrowserWindow, WebContentsView, app, nativeImage, screen } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
@@ -102,9 +102,11 @@ export class WindowManager {
   }
 
   private createThumbnailWindow(): void {
+    // Position just above the top edge of the primary display so DWM composites it
+    const { bounds } = screen.getPrimaryDisplay();
     this.thumbnailWindow = new BrowserWindow({
-      x: -32000,
-      y: -32000,
+      x: bounds.x,
+      y: bounds.y - 95,
       width: 300,
       height: 90,
       frame: false,
@@ -125,6 +127,9 @@ export class WindowManager {
     this.thumbnailWindow.loadFile(
       path.join(__dirname, '../renderer/thumbnail/thumbnail.html')
     );
+
+    // Ignore all mouse events so the hidden window never intercepts clicks
+    this.thumbnailWindow.setIgnoreMouseEvents(true);
 
     // Seed with last known state if available (e.g. thumbnail window recreated mid-session)
     this.thumbnailWindow.webContents.on('did-finish-load', () => {
