@@ -31,6 +31,10 @@ export class NotificationManager {
       isPlaying: true,
       likeStatus: 'none',
       volume: 100,
+      currentTime: 0,
+      duration: 0,
+      repeatMode: 'none',
+      isShuffled: false,
     };
     this.fire(state);
   }

@@ -11,43 +11,24 @@
       background: #1a1a2e;
       color: #e6edf3;
       font-family: system-ui, -apple-system, sans-serif;
-      width: 320px;
-      height: 110px;
+      width: 360px;
+      height: 130px;
       overflow: hidden;
       -webkit-app-region: drag;
       user-select: none;
-      border-radius: 8px;
     }
-    #container {
+
+    /* ── Info row ── */
+    #info-row {
       display: flex;
       align-items: center;
       height: 80px;
-      padding: 8px;
+      padding: 10px 8px 0;
       gap: 8px;
     }
-    #volume-row {
-      display: flex;
-      align-items: center;
-      padding: 0 10px 6px;
-      gap: 6px;
-      -webkit-app-region: no-drag;
-    }
-    #volume-row span {
-      font-size: 10px;
-      color: #6e7681;
-      flex-shrink: 0;
-      width: 20px;
-      text-align: center;
-    }
-    #volume-control {
-      flex: 1;
-      height: 4px;
-      cursor: pointer;
-      accent-color: #58a6ff;
-    }
     #album-art {
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       border-radius: 4px;
       object-fit: cover;
       background: #2d2d4e;
@@ -74,57 +55,185 @@
       text-overflow: ellipsis;
       margin-top: 2px;
     }
-    #controls {
+
+    /* ── Vertical volume ── */
+    #vol-wrap {
       display: flex;
       align-items: center;
-      gap: 1px;
-      -webkit-app-region: no-drag;
+      justify-content: center;
       flex-shrink: 0;
+      width: 24px;
+      height: 58px;
+      -webkit-app-region: no-drag;
+    }
+    #volume-control {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 4px;
+      height: 50px;
+      cursor: pointer;
+      accent-color: #58a6ff;
+    }
+
+    /* ── Controls row ── */
+    #controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      padding: 0 6px;
+      gap: 2px;
+      -webkit-app-region: no-drag;
     }
     .ctrl {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border: none;
       background: transparent;
       color: #8b949e;
       cursor: pointer;
       border-radius: 4px;
-      font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+      position: relative;
     }
     .ctrl:hover { background: #2d2d4e; color: #e6edf3; }
-    #play-btn { font-size: 15px; color: #e6edf3; }
-    #expand-btn { color: #58a6ff; font-size: 9px; }
-    #like-btn, #dislike-btn { filter: grayscale(100%); opacity: 0.45; font-size: 13px; }
-    #like-btn:hover, #dislike-btn:hover { filter: none; opacity: 0.8; }
+    .ctrl svg { width: 18px; height: 18px; pointer-events: none; }
+
+    /* Play/Pause toggle */
+    #play-btn { color: #e6edf3; }
+    #play-btn svg { width: 22px; height: 22px; }
+    #play-btn .icon-pause { display: none; }
+    #play-btn.playing .icon-play { display: none; }
+    #play-btn.playing .icon-pause { display: block; }
+
+    /* Shuffle / Repeat active */
+    #shuffle-btn.active, #repeat-btn.active { color: #58a6ff; }
+    #repeat-btn .icon-repeat-one { display: none; }
+    #repeat-btn.repeat-one .icon-repeat { display: none; }
+    #repeat-btn.repeat-one .icon-repeat-one { display: block; }
+
+    /* Like / Dislike emoji */
+    #like-btn, #dislike-btn {
+      filter: grayscale(100%);
+      opacity: 0.45;
+      font-size: 14px;
+    }
+    #like-btn:hover, #dislike-btn:hover { filter: none; opacity: 0.8; background: #2d2d4e; }
     #like-btn.liked { filter: none; opacity: 1; }
     #dislike-btn.disliked { filter: none; opacity: 1; }
+
+    /* Expand */
+    #expand-btn { color: #58a6ff; }
+    #expand-btn svg { width: 15px; height: 15px; }
+
+    /* ── Progress row ── */
+    #progress-row {
+      display: flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px 6px;
+      gap: 5px;
+      -webkit-app-region: no-drag;
+    }
+    .time-label {
+      font-size: 9px;
+      color: #6e7681;
+      flex-shrink: 0;
+      min-width: 26px;
+      text-align: center;
+    }
+    #progress-control {
+      flex: 1;
+      height: 3px;
+      cursor: pointer;
+      accent-color: #ff4e45;
+    }
   </style>
 </head>
 <body>
-  <div id="container">
-    <img id="album-art" src="" alt="Album Art">
+
+  <!-- Info row: album art | track info | vertical volume -->
+  <div id="info-row">
+    <img id="album-art" src="" alt="">
     <div id="track-info">
       <div id="track-title">Not playing</div>
       <div id="track-artist"></div>
     </div>
-    <div id="controls">
-      <button class="ctrl" id="prev-btn" title="Previous">&#9664;&#9664;</button>
-      <button class="ctrl" id="play-btn" title="Play/Pause">&#9654;</button>
-      <button class="ctrl" id="next-btn" title="Next">&#9654;&#9654;</button>
-      <button class="ctrl" id="like-btn" title="Like">&#x1F44D;</button>
-      <button class="ctrl" id="dislike-btn" title="Dislike">&#x1F44E;</button>
-      <button class="ctrl" id="expand-btn" title="Expand">&#9723;</button>
+    <div id="vol-wrap">
+      <input type="range" id="volume-control" min="0" max="100" value="100">
     </div>
   </div>
-  <div id="volume-row">
-    <span>&#9835;</span>
-    <input type="range" id="volume-control" min="0" max="100" value="100">
-    <span id="volume-label">100</span>
+
+  <!-- Controls row -->
+  <div id="controls-row">
+
+    <!-- Shuffle -->
+    <button class="ctrl" id="shuffle-btn" title="Shuffle">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+      </svg>
+    </button>
+
+    <!-- Skip Previous -->
+    <button class="ctrl" id="prev-btn" title="Previous">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+      </svg>
+    </button>
+
+    <!-- Play / Pause -->
+    <button class="ctrl" id="play-btn" title="Play/Pause">
+      <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+      </svg>
+    </button>
+
+    <!-- Skip Next -->
+    <button class="ctrl" id="next-btn" title="Next">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+      </svg>
+    </button>
+
+    <!-- Repeat -->
+    <button class="ctrl" id="repeat-btn" title="Repeat">
+      <svg class="icon-repeat" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v5z"/>
+      </svg>
+      <svg class="icon-repeat-one" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v5zm-4-2v-4h-1l-2 1v1h1.5v3H13z"/>
+      </svg>
+    </button>
+
+    <!-- Like -->
+    <button class="ctrl" id="like-btn" title="Like">&#x1F44D;</button>
+
+    <!-- Dislike -->
+    <button class="ctrl" id="dislike-btn" title="Dislike">&#x1F44E;</button>
+
+    <!-- Expand to full player -->
+    <button class="ctrl" id="expand-btn" title="Full Player">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+      </svg>
+    </button>
+
   </div>
+
+  <!-- Progress row -->
+  <div id="progress-row">
+    <span class="time-label" id="current-time">0:00</span>
+    <input type="range" id="progress-control" min="0" max="100" value="0" step="1">
+    <span class="time-label" id="total-time">0:00</span>
+  </div>
+
   <script src="mini.js"></script>
 </body>
 </html>

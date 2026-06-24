@@ -101,6 +101,7 @@ if (!gotLock) {
     // IPC: player actions from renderers
     ipcMain.on('player:action', (_event, { action }) => playerBridge.execute(action));
     ipcMain.on('player:set-volume', (_event, { value }) => playerBridge.setVolume(value));
+    ipcMain.on('player:seek', (_event, { position }) => playerBridge.seek(position));
   });
 
   app.on('before-quit', () => {

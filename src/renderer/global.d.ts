@@ -17,6 +17,8 @@ declare global {
       offStateChanged: () => void;
       sendAction: (action: string) => void;
       setVolume: (value: number) => void;
+      seek: (position: number) => void;
+      onProgressUpdated: (callback: (currentTime: number, duration: number) => void) => void;
       expandPlayer: () => void;
     };
     settingsApi: {

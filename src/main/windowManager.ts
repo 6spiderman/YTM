@@ -79,11 +79,17 @@ export class WindowManager {
     // Forward player state to renderers and update thumbar
     this.playerBridge.on('state-changed', (state) => {
       this.broadcastState(state);
-      this.updateThumbarButtons(state.isPlaying);
+      this.updateThumbarButtons(state.isPlaying, this.mainWindow);
+      this.updateThumbarButtons(state.isPlaying, this.miniWindow);
+    });
+
+    // Forward progress ticks to mini-player only (avoids per-second tray rebuilds)
+    this.playerBridge.on('progress-updated', (currentTime: number, duration: number) => {
+      this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
     });
 
     // Initialise thumbar buttons (paused state until first track)
-    this.updateThumbarButtons(false);
+    this.updateThumbarButtons(false, this.mainWindow);
   }
 
   private positionYtmView(): void {
@@ -179,8 +185,8 @@ export class WindowManager {
     this.miniWindow = new BrowserWindow({
       x: miniPlayerBounds.x,
       y: miniPlayerBounds.y,
-      width: 320,
-      height: 110,
+      width: 360,
+      height: 130,
       resizable: false,
       frame: false,
       alwaysOnTop: miniPlayerAlwaysOnTop,
@@ -202,6 +208,7 @@ export class WindowManager {
       if (lastState) {
         this.miniWindow?.webContents.send('player:state-changed', lastState);
       }
+      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.miniWindow);
     });
 
     this.miniWindow.on('close', () => {
@@ -266,15 +273,15 @@ export class WindowManager {
     });
   }
 
-  private updateThumbarButtons(isPlaying: boolean): void {
-    if (!this.mainWindow) return;
+  private updateThumbarButtons(isPlaying: boolean, win: BrowserWindow | null | undefined): void {
+    if (!win) return;
 
     const icon = (name: string) =>
       nativeImage.createFromPath(
         path.join(app.getAppPath(), 'assets', 'icons', `${name}.png`)
       );
 
-    this.mainWindow.setThumbarButtons([
+    win.setThumbarButtons([
       {
         tooltip: 'Previous Track',
         icon: icon('thumbar-prev'),

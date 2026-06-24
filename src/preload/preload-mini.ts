@@ -14,6 +14,12 @@ contextBridge.exposeInMainWorld('miniApi', {
   setVolume: (value: number) => {
     ipcRenderer.send('player:set-volume', { value });
   },
+  seek: (position: number) => {
+    ipcRenderer.send('player:seek', { position });
+  },
+  onProgressUpdated: (callback: (currentTime: number, duration: number) => void) => {
+    ipcRenderer.on('player:progress-updated', (_event, currentTime: number, duration: number) => callback(currentTime, duration));
+  },
   expandPlayer: () => {
     ipcRenderer.send('window:show-full');
   },

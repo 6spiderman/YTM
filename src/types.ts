@@ -5,6 +5,10 @@ export interface PlayerState {
   isPlaying: boolean;
   likeStatus: 'like' | 'dislike' | 'none';
   volume: number;
+  currentTime: number;
+  duration: number;
+  repeatMode: 'none' | 'all' | 'one';
+  isShuffled: boolean;
 }
 
 export type ShortcutAction =

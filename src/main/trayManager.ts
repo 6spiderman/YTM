@@ -32,8 +32,9 @@ export class TrayManager {
     const label = state.currentTrack
       ? `${state.currentArtist} - ${state.currentTrack}`
       : 'Not playing';
-    this.nowPlaying = label;
     this.tray?.setToolTip(`YTM - ${state.currentTrack || 'Not playing'}`);
+    if (label === this.nowPlaying) return;
+    this.nowPlaying = label;
     this.buildMenu();
   }
 

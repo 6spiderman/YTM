@@ -26,13 +26,14 @@ const STATE_SCRIPT = `
     var albumArt = getAttr('#thumbnail img', 'src') ||
                    getAttr('ytmusic-player-bar img', 'src') || '';
 
-    // Prefer the video element - most reliable across YTM UI changes
+    // isPlaying, currentTime, duration via video element
     var videoEl = document.querySelector('video');
-    var isPlaying = false;
+    var isPlaying = false, currentTime = 0, duration = 0;
     if (videoEl) {
       isPlaying = !videoEl.paused && !videoEl.ended && videoEl.readyState > 2;
+      currentTime = Math.floor(videoEl.currentTime || 0);
+      duration = isFinite(videoEl.duration) ? Math.floor(videoEl.duration) : 0;
     } else {
-      // Fallback: aria-label on play/pause button (case-insensitive contains)
       var playBtn = document.querySelector('#play-pause-button') ||
                     document.querySelector('.play-pause-button');
       if (playBtn) {
@@ -54,9 +55,27 @@ const STATE_SCRIPT = `
     var volSlider = document.querySelector('#volume-slider');
     var volume = volSlider ? Number(volSlider.value) : 100;
 
-    return JSON.stringify({ currentTrack: title, currentArtist: artist,
+    var shuffleBtn = document.querySelector('ytmusic-player-bar [aria-label*="Shuffle"]') ||
+                     document.querySelector('#shuffle-button');
+    var isShuffled = shuffleBtn ? shuffleBtn.getAttribute('aria-pressed') === 'true' : false;
+
+    var repeatBtn = document.querySelector('ytmusic-player-bar [aria-label*="Repeat"]') ||
+                    document.querySelector('#repeat-button');
+    var repeatMode = 'none';
+    if (repeatBtn) {
+      var rLabel = (repeatBtn.getAttribute('aria-label') || '').toLowerCase();
+      var rPressed = repeatBtn.getAttribute('aria-pressed') === 'true';
+      if (rLabel.includes('one') || rLabel.includes('single')) repeatMode = 'one';
+      else if (rPressed || rLabel.includes('all')) repeatMode = 'all';
+    }
+
+    return JSON.stringify({
+      currentTrack: title, currentArtist: artist,
       albumArtUrl: albumArt, isPlaying: isPlaying,
-      likeStatus: likeStatus, volume: volume });
+      likeStatus: likeStatus, volume: volume,
+      currentTime: currentTime, duration: duration,
+      isShuffled: isShuffled, repeatMode: repeatMode
+    });
   } catch(e) {
     return JSON.stringify(null);
   }
@@ -84,6 +103,18 @@ const ACTIONS: Record<string, string> = {
       var b = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Dislike"]') ||
               document.querySelector('ytmusic-like-button-renderer [aria-label="Dislike"]') ||
               document.querySelector('ytmusic-like-button-renderer button:last-of-type');
+      if (b) b.click();
+    })()`,
+  toggleShuffle: `
+    (function() {
+      var b = document.querySelector('ytmusic-player-bar [aria-label*="Shuffle"]') ||
+              document.querySelector('#shuffle-button');
+      if (b) b.click();
+    })()`,
+  toggleRepeat: `
+    (function() {
+      var b = document.querySelector('ytmusic-player-bar [aria-label*="Repeat"]') ||
+              document.querySelector('#repeat-button');
       if (b) b.click();
     })()`,
 };
@@ -114,9 +145,20 @@ export class PlayerBridge extends EventEmitter {
       const raw = await this.webContents.executeJavaScript(STATE_SCRIPT);
       if (!raw) return;
       const state: PlayerState = JSON.parse(raw);
-      if (JSON.stringify(state) !== JSON.stringify(this.lastState)) {
+
+      // Compare without currentTime so a ticking clock doesn't spam state-changed.
+      // Tray menu only rebuilds on meaningful changes; mini-player progress is
+      // served by the always-updated lastState sent on each poll.
+      const sig = (s: PlayerState) =>
+        JSON.stringify({ ...s, currentTime: 0 });
+
+      if (sig(state) !== sig(this.lastState ?? ({} as PlayerState))) {
         this.lastState = state;
         this.emit('state-changed', state);
+      } else if (state.currentTime !== this.lastState?.currentTime) {
+        // Only time ticked - update lastState silently and emit a lightweight event
+        this.lastState = { ...this.lastState!, currentTime: state.currentTime };
+        this.emit('progress-updated', state.currentTime, state.duration);
       }
     } catch (err) {
       this.emit('bridge:selector-error', err);
@@ -134,6 +176,21 @@ export class PlayerBridge extends EventEmitter {
       if (script) {
         await this.webContents.executeJavaScript(script);
       }
+    } catch (err) {
+      this.emit('bridge:selector-error', err);
+    }
+  }
+
+  async seek(position: number): Promise<void> {
+    if (!this.webContents || this.webContents.isDestroyed()) return;
+    const script = `
+      (function() {
+        var v = document.querySelector('video');
+        if (v && isFinite(${position})) v.currentTime = ${position};
+      })()
+    `;
+    try {
+      await this.webContents.executeJavaScript(script);
     } catch (err) {
       this.emit('bridge:selector-error', err);
     }
