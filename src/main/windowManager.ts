@@ -144,15 +144,24 @@ export class WindowManager {
       }
     });
 
-    // Redirect taskbar-button clicks to the actual active player window
+    // Taskbar icon click: toggle the active player window (show if hidden, hide if visible)
     this.thumbnailWindow.on('focus', () => {
       this.thumbnailWindow?.blur();
       if (this.isMiniMode && this.miniWindow) {
-        this.miniWindow.show();
-        this.miniWindow.focus();
+        if (this.miniWindow.isVisible() && !this.miniWindow.isMinimized()) {
+          this.miniWindow.hide();
+        } else {
+          this.miniWindow.show();
+          this.miniWindow.focus();
+        }
       } else if (this.mainWindow) {
-        this.mainWindow.show();
-        this.mainWindow.focus();
+        if (this.mainWindow.isVisible() && !this.mainWindow.isMinimized()) {
+          this.mainWindow.hide();
+        } else {
+          if (this.mainWindow.isMinimized()) this.mainWindow.restore();
+          this.mainWindow.show();
+          this.mainWindow.focus();
+        }
       }
     });
 
