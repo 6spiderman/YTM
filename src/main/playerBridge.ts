@@ -26,13 +26,13 @@ const STATE_SCRIPT = `
     var albumArt = getAttr('#thumbnail img', 'src') ||
                    getAttr('ytmusic-player-bar img', 'src') || '';
 
-    // isPlaying, currentTime, duration via video element
+    // isPlaying from video element; currentTime/duration from YTM's progress
+    // slider (aria-valuenow/aria-valuemax) to avoid picking up the wrong video
+    // element when YouTube Music has multiple <video> tags on the page.
     var videoEl = document.querySelector('video');
     var isPlaying = false, currentTime = 0, duration = 0;
     if (videoEl) {
       isPlaying = !videoEl.paused && !videoEl.ended && videoEl.readyState > 2;
-      currentTime = Math.floor(videoEl.currentTime || 0);
-      duration = isFinite(videoEl.duration) ? Math.floor(videoEl.duration) : 0;
     } else {
       var playBtn = document.querySelector('#play-pause-button') ||
                     document.querySelector('.play-pause-button');
@@ -40,6 +40,21 @@ const STATE_SCRIPT = `
         var label = (playBtn.getAttribute('aria-label') || '').toLowerCase();
         isPlaying = label.includes('pause');
       }
+    }
+    var sliderEl = document.querySelector('#progress-bar');
+    if (sliderEl) {
+      var vNow = parseFloat(sliderEl.getAttribute('aria-valuenow') || '-1');
+      var vMax = parseFloat(sliderEl.getAttribute('aria-valuemax') || '0');
+      if (vNow >= 0 && vMax > 0) {
+        currentTime = Math.floor(vNow);
+        duration = Math.floor(vMax);
+      } else if (videoEl) {
+        currentTime = Math.floor(videoEl.currentTime || 0);
+        duration = isFinite(videoEl.duration) ? Math.floor(videoEl.duration) : 0;
+      }
+    } else if (videoEl) {
+      currentTime = Math.floor(videoEl.currentTime || 0);
+      duration = isFinite(videoEl.duration) ? Math.floor(videoEl.duration) : 0;
     }
 
     var likeBtn = document.querySelector('ytmusic-player-bar ytmusic-like-button-renderer [aria-label="Like"]') ||
