@@ -29,7 +29,7 @@ export class WindowManager {
       minWidth: 800,
       minHeight: 600,
       frame: false,
-      show: true,
+      show: false,
       backgroundColor: '#0d1117',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload.js'),
@@ -54,9 +54,13 @@ export class WindowManager {
     this.positionYtmView();
     this.ytmView.webContents.loadURL('https://music.youtube.com');
 
-    // Apply thumbar as soon as the main window shell is ready
-    this.mainWindow.webContents.on('did-finish-load', () => {
-      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
+    // Show window and apply thumbar only after Windows has fully registered it
+    this.mainWindow.once('ready-to-show', () => {
+      const { startMinimised } = this.settings.get();
+      if (!startMinimised) {
+        this.mainWindow?.show();
+        this.updateThumbarButtons(false, this.mainWindow);
+      }
     });
 
     // Wire player bridge to the ytmView webContents
@@ -128,6 +132,7 @@ export class WindowManager {
       if (this.mainWindow?.isMinimized()) this.mainWindow.restore();
       this.mainWindow?.show();
       this.mainWindow?.focus();
+      this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
     }
   }
 
