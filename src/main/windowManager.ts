@@ -102,13 +102,17 @@ export class WindowManager {
   }
 
   private createThumbnailWindow(): void {
-    // Position just above the top edge of the primary display so DWM composites it
+    // Position so the bottom 1px of the window sits on-screen — DWM only composites
+    // windows that overlap the virtual screen; y = bounds.y - 89 keeps 89px hidden
+    // above the top edge while leaving 1px inside bounds for DWM to render.
     const { bounds } = screen.getPrimaryDisplay();
+    const W = 300;
+    const H = 90;
     this.thumbnailWindow = new BrowserWindow({
       x: bounds.x,
-      y: bounds.y - 95,
-      width: 300,
-      height: 90,
+      y: bounds.y - (H - 1),
+      width: W,
+      height: H,
       frame: false,
       show: true,
       skipTaskbar: false,
