@@ -170,6 +170,7 @@ export class WindowManager {
     this.isMiniMode = true;
     this.mainWindow?.hide();
     this.miniWindow?.show();
+    this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.miniWindow);
   }
 
   showFullPlayer(): void {
@@ -177,6 +178,7 @@ export class WindowManager {
     this.miniWindow?.hide();
     this.mainWindow?.show();
     this.mainWindow?.focus();
+    this.updateThumbarButtons(this.playerBridge.getLastState()?.isPlaying ?? false, this.mainWindow);
   }
 
   private createMiniWindow(): void {
