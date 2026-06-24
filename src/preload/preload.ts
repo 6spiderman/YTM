@@ -26,4 +26,7 @@ contextBridge.exposeInMainWorld('api', {
   openSettings: () => {
     ipcRenderer.send('window:open-settings');
   },
+  reloadPage: () => {
+    ipcRenderer.send('window:reload-ytm');
+  },
 });

@@ -368,6 +368,10 @@ export class WindowManager {
     ]);
   }
 
+  reloadYtmView(): void {
+    this.ytmView?.webContents.reload();
+  }
+
   getYtmWebContents() {
     return this.ytmView?.webContents ?? null;
   }

@@ -2,6 +2,10 @@ document.getElementById('mini-btn')?.addEventListener('click', () => {
   window.api.toggleMiniPlayer();
 });
 
+document.getElementById('reload-btn')?.addEventListener('click', () => {
+  window.api.reloadPage();
+});
+
 document.getElementById('settings-btn')?.addEventListener('click', () => {
   window.api.openSettings();
 });
