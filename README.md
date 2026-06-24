@@ -30,29 +30,12 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 |---------|---------|
 | 🎹 **Global shortcuts** | Control playback from anywhere - even when the app is hidden |
 | 🗂️ **System tray** | Lives quietly in your tray, shows now-playing in the tooltip and context menu |
-| 🪟 **Mini player** | Compact 360x130 overlay with progress bar, volume, shuffle, and repeat |
+| 🪟 **Mini player** | Compact 360x130 overlay with progress bar, volume slider, shuffle, and repeat |
 | 🔔 **Track notifications** | Windows toast notification on every track change, with album art |
-| 🖱️ **Taskbar media controls** | Previous / Play-Pause / Next buttons in the taskbar thumbnail on hover - works in both full and mini player modes |
+| 🖱️ **Taskbar thumbnail** | Hover the taskbar icon to see album art, track info, and media controls - consistent in both full and mini player modes |
 | ⚙️ **Settings UI** | All preferences in one place - no config files to edit |
 | 🔒 **Session persistence** | Sign in once, stay signed in forever |
 | 🚀 **Start with Windows** | Optional auto-start on login |
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-### Main Window
-> Full YouTube Music experience inside a sleek frameless window with a custom title bar.
-
-### Mini Player
-> A tiny 320x90 player that sits above your other windows - track info, album art, and playback controls at a glance.
-
-### Settings
-> Configure shortcuts, notifications, and general behaviour all in one place.
-
-</div>
 
 ---
 
@@ -149,7 +132,7 @@ Get Lucky
 
 ## 🪟 Mini Player
 
-Click the **▶ Mini** button in the title bar (or press your Toggle Mini Player shortcut) to switch to the compact overlay.
+Click the **▶ Mini** button in the title bar (or press your Toggle Mini Player shortcut) to switch to the compact 360x130 overlay.
 
 The mini player shows:
 - Album art thumbnail
@@ -160,9 +143,18 @@ The mini player shows:
 - Vertical volume slider
 - An expand button to return to the full window
 
-The taskbar thumbnail controls (Previous / Play-Pause / Next) remain active whether you are in full or mini player mode.
-
 It remembers its screen position between sessions.
+
+---
+
+## 🖱️ Taskbar Thumbnail
+
+Hovering over the YTM taskbar icon shows a thumbnail with:
+- Album art
+- Track title and artist
+- Previous / Play-Pause / Next media control buttons
+
+This thumbnail is always consistent - it displays the same information whether you are using the full player or the mini player.
 
 ---
 
@@ -178,13 +170,13 @@ It remembers its screen position between sessions.
 
 ```bash
 # Clone the repo
-git clone https://github.com/6spiderman/ytm.git
-cd ytm
+git clone https://github.com/6spiderman/YTM.git
+cd YTM
 
 # Install dependencies
 npm install
 
-# Start in development mode (hot-reloads on file changes)
+# Start in development mode
 npm run dev
 ```
 
@@ -198,12 +190,6 @@ This produces `dist-installer/YTM Setup 1.0.0.exe`.
 
 > **Tip:** You need `assets/icons/icon.ico` and `assets/icons/tray-icon.ico` present before building. They are included in the repo.
 
-### Run tests
-
-```bash
-npm test
-```
-
 ### Project structure
 
 ```
@@ -211,12 +197,15 @@ src/
   main/           # Electron main process
   preload/        # Context bridge scripts (one per window)
   renderer/       # UI for each window (HTML + TypeScript)
+    main-window/  # Full player title bar
+    mini-player/  # Compact 360x130 overlay
+    thumbnail/    # Off-screen taskbar thumbnail card
+    settings/     # Settings window
   types.ts        # Shared TypeScript interfaces
 scripts/
   bundle-renderer.js   # esbuild bundler for renderer scripts
 assets/
-  icons/          # App icon in PNG and ICO formats
-tests/            # Jest unit tests
+  icons/          # App icon, tray icon, and thumbar button images
 ```
 
 ---
