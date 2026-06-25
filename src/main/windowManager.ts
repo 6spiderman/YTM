@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, app, nativeImage, screen } from 'electron';
+import { BrowserWindow, WebContentsView, app, nativeImage } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
@@ -106,23 +106,16 @@ export class WindowManager {
   }
 
   private createProxyWindow(): void {
-    // Place the proxy window inside the taskbar area (bottom of screen on standard setups).
-    // The taskbar renders above it at the OS level, so the user never sees the window.
-    // DWM still captures it for the thumbnail popup - a slim dark strip the same height as
-    // the taskbar (~48px) rather than a large stretched box from a 1×1 window.
-    // Falls back to a 1×1 window at the screen corner when the taskbar isn't detectable
-    // (auto-hide, full-screen, taskbar on top/sides).
-    const { bounds, workArea } = screen.getPrimaryDisplay();
-    const bottomTaskbarH = bounds.y + bounds.height - (workArea.y + workArea.height);
-    const inTaskbar = bottomTaskbarH > 0;
-    const proxyH = inTaskbar ? bottomTaskbarH : 1;
-    const proxyY = inTaskbar ? workArea.y + workArea.height : bounds.y;
-
+    // Small dark window at (0,0) - owns the taskbar button and thumbar buttons.
+    // Position (0,0) is confirmed to receive WM_ACTIVATE when the taskbar icon is
+    // clicked. Sized at 300×48 so DWM renders the thumbnail preview at a height
+    // proportional to the thumbar button strip (~48px each), avoiding the large
+    // empty box that a 1×1 window produces due to DWM's minimum thumbnail height.
     this.proxyWindow = new BrowserWindow({
-      x: bounds.x,
-      y: proxyY,
+      x: 0,
+      y: 0,
       width: 300,
-      height: proxyH,
+      height: 48,
       frame: false,
       show: true,
       skipTaskbar: false,
