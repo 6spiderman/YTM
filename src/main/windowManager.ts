@@ -9,9 +9,11 @@ const TITLE_BAR_HEIGHT = 36;
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
   private miniWindow: BrowserWindow | null = null;
+  private proxyWindow: BrowserWindow | null = null;
   private settingsWindow: BrowserWindow | null = null;
   private ytmView: WebContentsView | null = null;
   private isMiniMode = false;
+  private realWindowWasFocused = false;
 
   constructor(
     private settings: SettingsManager,
@@ -30,7 +32,7 @@ export class WindowManager {
       minHeight: 600,
       frame: false,
       show: false,
-      skipTaskbar: false,
+      skipTaskbar: true,
       backgroundColor: '#0d1117',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload.js'),
@@ -74,6 +76,10 @@ export class WindowManager {
     // Reposition ytmView on resize
     this.mainWindow.on('resize', () => this.positionYtmView());
 
+    // Track when the real player window loses focus so the proxy focus handler
+    // can distinguish "was foreground when clicked" from "was behind other windows".
+    this.mainWindow.on('blur', () => { this.realWindowWasFocused = true; });
+
     // Persist window bounds on close
     this.mainWindow.on('close', (e) => {
       const { minimiseToTray } = this.settings.get();
@@ -94,6 +100,67 @@ export class WindowManager {
     // Forward progress ticks to mini-player only (avoids per-second tray rebuilds)
     this.playerBridge.on('progress-updated', (currentTime: number, duration: number) => {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
+    });
+
+    this.createProxyWindow();
+  }
+
+  private createProxyWindow(): void {
+    // 1x1 transparent window at (0,0) - owns the taskbar button and thumbar buttons.
+    // Being on-screen ensures Windows sends WM_ACTIVATE when the taskbar icon is clicked.
+    // Being 1x1 and transparent means DWM shows nothing in the preview area - only the
+    // thumbar media control buttons appear on hover.
+    this.proxyWindow = new BrowserWindow({
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      frame: false,
+      show: true,
+      skipTaskbar: false,
+      transparent: true,
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      hasShadow: false,
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
+    });
+
+    this.proxyWindow.loadURL(
+      'data:text/html,<style>html,body{background:transparent;margin:0}</style>'
+    );
+
+    this.proxyWindow.webContents.on('did-finish-load', () => {
+      const lastState = this.playerBridge.getLastState();
+      this.updateThumbarButtons(lastState?.isPlaying ?? false);
+    });
+
+    // Taskbar icon click: Windows activates this proxy window. We blur it immediately
+    // and toggle the real player window (minimize if it was foreground, restore/focus otherwise).
+    this.proxyWindow.on('focus', () => {
+      this.proxyWindow?.blur();
+      const wasFocused = this.realWindowWasFocused;
+      this.realWindowWasFocused = false;
+
+      const realWin = this.isMiniMode ? this.miniWindow : this.mainWindow;
+      if (!realWin) return;
+
+      if (wasFocused && realWin.isVisible() && !realWin.isMinimized()) {
+        realWin.minimize();
+      } else if (realWin.isMinimized()) {
+        realWin.restore();
+        realWin.focus();
+      } else {
+        realWin.show();
+        realWin.focus();
+      }
+    });
+
+    this.proxyWindow.on('close', (e) => {
+      if (!this.quitting) e.preventDefault();
     });
   }
 
@@ -176,8 +243,6 @@ export class WindowManager {
     this.isMiniMode = true;
     this.mainWindow?.hide();
     this.miniWindow?.show();
-    const isPlaying = this.playerBridge.getLastState()?.isPlaying ?? false;
-    this.updateThumbarButtons(isPlaying);
   }
 
   showFullPlayer(): void {
@@ -185,8 +250,6 @@ export class WindowManager {
     this.miniWindow?.hide();
     this.mainWindow?.show();
     this.mainWindow?.focus();
-    const isPlaying = this.playerBridge.getLastState()?.isPlaying ?? false;
-    this.updateThumbarButtons(isPlaying);
   }
 
   private createMiniWindow(): void {
@@ -200,7 +263,7 @@ export class WindowManager {
       resizable: false,
       frame: false,
       alwaysOnTop: miniPlayerAlwaysOnTop,
-      skipTaskbar: false,
+      skipTaskbar: true,
       backgroundColor: '#1a1a2e',
       webPreferences: {
         preload: path.join(__dirname, '../preload/preload-mini.js'),
@@ -219,6 +282,8 @@ export class WindowManager {
         this.miniWindow?.webContents.send('player:state-changed', lastState);
       }
     });
+
+    this.miniWindow.on('blur', () => { this.realWindowWasFocused = true; });
 
     this.miniWindow.on('close', () => {
       const bounds = this.miniWindow!.getBounds();
@@ -280,15 +345,14 @@ export class WindowManager {
   }
 
   private updateThumbarButtons(isPlaying: boolean): void {
-    const win = this.isMiniMode ? this.miniWindow : this.mainWindow;
-    if (!win) return;
+    if (!this.proxyWindow) return;
 
     const icon = (name: string) =>
       nativeImage.createFromPath(
         path.join(app.getAppPath(), 'assets', 'icons', `${name}.png`)
       );
 
-    win.setThumbarButtons([
+    this.proxyWindow.setThumbarButtons([
       {
         tooltip: 'Previous Track',
         icon: icon('thumbar-prev'),
@@ -305,10 +369,6 @@ export class WindowManager {
         click: () => { this.playerBridge.execute('nextTrack'); },
       },
     ]);
-
-    // Clip the DWM live preview to 1x1 so the hover popup shows only the
-    // thumbar buttons, not the full window content.
-    win.setThumbnailClip({ x: 0, y: 0, width: 1, height: 1 });
   }
 
   reloadYtmView(): void {
