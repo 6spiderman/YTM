@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, app, nativeImage } from 'electron';
+import { BrowserWindow, WebContentsView, app, nativeImage, screen } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
@@ -106,19 +106,27 @@ export class WindowManager {
   }
 
   private createProxyWindow(): void {
-    // 1x1 transparent window at (0,0) - owns the taskbar button and thumbar buttons.
-    // Being on-screen ensures Windows sends WM_ACTIVATE when the taskbar icon is clicked.
-    // Being 1x1 and transparent means DWM shows nothing in the preview area - only the
-    // thumbar media control buttons appear on hover.
+    // Place the proxy window inside the taskbar area (bottom of screen on standard setups).
+    // The taskbar renders above it at the OS level, so the user never sees the window.
+    // DWM still captures it for the thumbnail popup - a slim dark strip the same height as
+    // the taskbar (~48px) rather than a large stretched box from a 1×1 window.
+    // Falls back to a 1×1 window at the screen corner when the taskbar isn't detectable
+    // (auto-hide, full-screen, taskbar on top/sides).
+    const { bounds, workArea } = screen.getPrimaryDisplay();
+    const bottomTaskbarH = bounds.y + bounds.height - (workArea.y + workArea.height);
+    const inTaskbar = bottomTaskbarH > 0;
+    const proxyH = inTaskbar ? bottomTaskbarH : 1;
+    const proxyY = inTaskbar ? workArea.y + workArea.height : bounds.y;
+
     this.proxyWindow = new BrowserWindow({
-      x: 0,
-      y: 0,
-      width: 1,
-      height: 1,
+      x: bounds.x,
+      y: proxyY,
+      width: 300,
+      height: proxyH,
       frame: false,
       show: true,
       skipTaskbar: false,
-      transparent: true,
+      backgroundColor: '#1a1a2e',
       resizable: false,
       minimizable: false,
       maximizable: false,
@@ -129,9 +137,7 @@ export class WindowManager {
       },
     });
 
-    this.proxyWindow.loadURL(
-      'data:text/html,<style>html,body{background:transparent;margin:0}</style>'
-    );
+    this.proxyWindow.loadURL('about:blank');
 
     this.proxyWindow.webContents.on('did-finish-load', () => {
       const lastState = this.playerBridge.getLastState();
