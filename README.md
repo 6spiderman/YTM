@@ -44,7 +44,7 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 ### Windows - installer (recommended)
 
 1. Go to the [**Releases**](https://github.com/6spiderman/ytm/releases/latest) page
-2. Download **`YTM Setup 1.0.0.exe`**
+2. Download **`YTM Setup 1.1.0.exe`** (GitHub may display the name as `YTM.Setup.1.1.0.exe`)
 3. Run the installer - choose your install directory
 4. A desktop shortcut and Start Menu entry will be created automatically
 5. Launch **YTM** and sign in to your Google account
