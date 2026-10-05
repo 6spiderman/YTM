@@ -3,8 +3,14 @@ export const app = {
     if (name === 'userData') return '/tmp/test-ytm';
     return '/tmp';
   }),
+  getAppPath: jest.fn(() => '/app'),
+  isPackaged: false,
   on: jest.fn(),
   quit: jest.fn(),
+  requestSingleInstanceLock: jest.fn(() => true),
+  whenReady: jest.fn(() => Promise.resolve()),
+  setAppUserModelId: jest.fn(),
+  setAsDefaultProtocolClient: jest.fn(),
   setLoginItemSettings: jest.fn(),
   getLoginItemSettings: jest.fn(() => ({ openAtLogin: false })),
 };
@@ -24,6 +30,7 @@ export const globalShortcut = {
 
 export const Notification = jest.fn().mockImplementation(() => ({
   show: jest.fn(),
+  on: jest.fn(),
 }));
 
 export const Tray = jest.fn().mockImplementation(() => ({
@@ -37,7 +44,7 @@ export const Menu = {
 };
 
 export const nativeImage = {
-  createFromPath: jest.fn(() => ({})),
+  createFromPath: jest.fn(() => ({ isEmpty: () => false })),
   createEmpty: jest.fn(() => ({})),
 };
 
