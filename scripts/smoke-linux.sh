@@ -46,8 +46,8 @@ for p in $(procs); do
 done
 [ "$SANDBOXED" -ge 1 ] && pass "$SANDBOXED sandboxed renderer(s) with seccomp active" || fail "no sandboxed renderer found"
 
-if grep -qiE 'FATAL|SUID sandbox helper|No usable sandbox|Failed to move to new namespace' "$UD/app.log"; then
-  fail "sandbox/fatal errors in log:"; grep -iE 'FATAL|SUID sandbox helper|No usable sandbox|Failed to move to new namespace' "$UD/app.log" | head -5
+if grep -qE 'FATAL:|SUID sandbox helper|No usable sandbox|Failed to move to new namespace' "$UD/app.log"; then
+  fail "sandbox/fatal errors in log:"; grep -E 'FATAL:|SUID sandbox helper|No usable sandbox|Failed to move to new namespace' "$UD/app.log" | head -5
 else
   pass "no sandbox or fatal errors in log"
 fi

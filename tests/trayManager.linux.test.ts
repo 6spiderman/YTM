@@ -1,4 +1,5 @@
 import { nativeImage, Tray } from 'electron';
+import path from 'path';
 import { TrayManager } from '../src/main/trayManager';
 import { makeFakeSettings, setPlatform } from './helpers/fakeElectron';
 
@@ -19,7 +20,7 @@ describe('TrayManager on linux', () => {
     new TrayManager(makeFakeSettings() as never, {} as never, { execute: jest.fn() } as never).show();
 
     const tray = (Tray as unknown as jest.Mock).mock.results[0].value;
-    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/app/assets/icons/icon.png');
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith(path.join('/app', 'assets', 'icons', 'icon.png'));
     expect(resize).toHaveBeenCalledWith({ width: 32, height: 32, quality: 'best' });
     expect(tray.setImage).toHaveBeenCalledWith({ resized: true });
   });

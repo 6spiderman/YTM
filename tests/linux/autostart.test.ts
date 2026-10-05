@@ -6,13 +6,13 @@ import { applyAutostart, autostartPath, buildAutostartEntry, quoteExecArg } from
 
 describe('autostartPath', () => {
   it('uses ~/.config/autostart by default', () => {
-    expect(autostartPath({}, '/home/u')).toBe('/home/u/.config/autostart/ytm.desktop');
+    expect(autostartPath({}, '/home/u')).toBe(path.join('/home/u', '.config', 'autostart', 'ytm.desktop'));
   });
   it('honours an absolute XDG_CONFIG_HOME', () => {
-    expect(autostartPath({ XDG_CONFIG_HOME: '/custom/cfg' }, '/home/u')).toBe('/custom/cfg/autostart/ytm.desktop');
+    expect(autostartPath({ XDG_CONFIG_HOME: '/custom/cfg' }, '/home/u')).toBe(path.join('/custom/cfg', 'autostart', 'ytm.desktop'));
   });
   it('ignores a relative XDG_CONFIG_HOME as the spec requires', () => {
-    expect(autostartPath({ XDG_CONFIG_HOME: 'rel' }, '/home/u')).toBe('/home/u/.config/autostart/ytm.desktop');
+    expect(autostartPath({ XDG_CONFIG_HOME: 'rel' }, '/home/u')).toBe(path.join('/home/u', '.config', 'autostart', 'ytm.desktop'));
   });
 });
 
@@ -63,7 +63,8 @@ describe('applyAutostart', () => {
   it('creates the entry (and its directory) when enabled', () => {
     applyAutostart(true, file);
     expect(fs.readFileSync(file, 'utf8')).toContain(`Exec=${process.execPath}`);
-    expect(fs.statSync(file).mode & 0o777).toBe(0o644);
+    // POSIX permission bits are not meaningful on Windows file systems.
+    if (process.platform !== 'win32') expect(fs.statSync(file).mode & 0o777).toBe(0o644);
   });
   it('removes the entry when disabled, and tolerates it already being gone', () => {
     applyAutostart(true, file);

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, WebContentsView } from 'electron';
 import { EventEmitter } from 'events';
+import path from 'path';
 import { WindowManager } from '../src/main/windowManager';
 import { FakeWindow, fire, makeFakeSettings, makeFakeWebContents, makeFakeWindow, setPlatform } from './helpers/fakeElectron';
 
@@ -41,7 +42,7 @@ describe('WindowManager on linux', () => {
     wm.showMiniPlayer();
     wm.openSettings();
     expect(wins).toHaveLength(3);
-    for (const w of wins) expect(w.setIcon).toHaveBeenCalledWith('/app/assets/icons/icon.png');
+    for (const w of wins) expect(w.setIcon).toHaveBeenCalledWith(path.join('/app', 'assets', 'icons', 'icon.png'));
   });
 
   it('saves the real window position under X11/XWayland', () => {
