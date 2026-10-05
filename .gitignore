@@ -3,5 +3,5 @@ dist/
 dist-installer/
 *.js.map
 .claude/
-docs/
-tests/
+docs/*
+!docs/kubuntu/
