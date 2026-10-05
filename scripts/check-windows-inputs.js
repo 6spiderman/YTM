@@ -19,7 +19,9 @@ function showBaseline(file) {
 }
 
 // 1. electron-builder.yml must be byte-identical to the baseline.
-if (showBaseline('electron-builder.yml') !== fs.readFileSync('electron-builder.yml', 'utf8')) {
+// Line endings are normalised: a Windows checkout may convert LF to CRLF (core.autocrlf).
+const lf = (text) => text.replace(/\r\n/g, '\n');
+if (lf(showBaseline('electron-builder.yml')) !== lf(fs.readFileSync('electron-builder.yml', 'utf8'))) {
   failures.push('electron-builder.yml differs from baseline');
 }
 
@@ -71,7 +73,7 @@ if (asarPath) {
   if (out) fs.writeFileSync(out, listing.join('\n') + '\n');
   const snapshot = path.join('docs', 'kubuntu', 'windows-asar-listing.txt');
   if (fs.existsSync(snapshot)) {
-    const expected = fs.readFileSync(snapshot, 'utf8').split('\n').filter(Boolean);
+    const expected = fs.readFileSync(snapshot, 'utf8').split(/\r?\n/).filter(Boolean);
     const added = listing.filter((p) => !expected.includes(p));
     const removed = expected.filter((p) => !listing.includes(p));
     if (added.length || removed.length) {
