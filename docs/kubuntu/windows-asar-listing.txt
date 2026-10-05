@@ -1,0 +1,75 @@
+/assets
+/assets/icons
+/assets/icons/icon.ico
+/assets/icons/icon.png
+/assets/icons/thumbar-next.png
+/assets/icons/thumbar-pause.png
+/assets/icons/thumbar-play.png
+/assets/icons/thumbar-prev.png
+/assets/icons/tray-icon.ico
+/dist
+/dist/main
+/dist/main/index.js
+/dist/main/index.js.map
+/dist/main/notificationManager.js
+/dist/main/notificationManager.js.map
+/dist/main/playerBridge.js
+/dist/main/playerBridge.js.map
+/dist/main/settingsManager.js
+/dist/main/settingsManager.js.map
+/dist/main/shortcutManager.js
+/dist/main/shortcutManager.js.map
+/dist/main/trayManager.js
+/dist/main/trayManager.js.map
+/dist/main/windowManager.js
+/dist/main/windowManager.js.map
+/dist/preload
+/dist/preload/preload-mini.js
+/dist/preload/preload-mini.js.map
+/dist/preload/preload-settings.js
+/dist/preload/preload-settings.js.map
+/dist/preload/preload.js
+/dist/preload/preload.js.map
+/dist/renderer
+/dist/renderer/main-window
+/dist/renderer/main-window/index.html
+/dist/renderer/main-window/index.js
+/dist/renderer/mini-player
+/dist/renderer/mini-player/mini.html
+/dist/renderer/mini-player/mini.js
+/dist/renderer/settings
+/dist/renderer/settings/settings.html
+/dist/renderer/settings/settings.js
+/dist/renderer/thumbnail
+/dist/renderer/thumbnail/thumbnail.html
+/dist/renderer/thumbnail/thumbnail.js
+/dist/types.js
+/dist/types.js.map
+/node_modules
+/package.json
+module ajv-formats@2.1.1
+module ajv@8.20.0
+module atomically@1.7.0
+module conf@10.2.0
+module debounce-fn@4.0.0
+module dot-prop@6.0.1
+module electron-store@8.2.0
+module env-paths@2.2.1
+module fast-deep-equal@3.1.3
+module fast-uri@3.1.2
+module find-up@3.0.0
+module is-obj@2.0.0
+module json-schema-traverse@1.0.0
+module json-schema-typed@7.0.3
+module locate-path@3.0.0
+module mimic-fn@2.1.0
+module mimic-fn@3.1.0
+module onetime@5.1.2
+module p-limit@2.3.0
+module p-locate@3.0.0
+module p-try@2.2.0
+module path-exists@3.0.0
+module pkg-up@3.1.0
+module require-from-string@2.0.2
+module semver@7.8.1
+module type-fest@2.19.0

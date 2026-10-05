@@ -43,13 +43,30 @@ if (JSON.stringify(baseAssets) !== JSON.stringify(curAssets)) {
   failures.push(`assets/ file list differs from baseline: ${JSON.stringify({ baseAssets, curAssets })}`);
 }
 
-// 4. Optional: list the built Windows app.asar and compare with the committed snapshot, if present.
+// 4. Optional: describe the built Windows app.asar and compare with the committed snapshot, if present.
+// Non-node_modules entries are compared by path; node_modules by "module name@version" so that
+// dedup/hoisting differences in the install layout are not reported, but any version change is.
+function describeAsar(asarPath) {
+  const asar = require('@electron/asar');
+  const lines = [];
+  for (const raw of asar.listPackage(asarPath, { isPack: false })) {
+    const p = raw.replace(/\\/g, '/');
+    if (!p.startsWith('/node_modules/')) {
+      lines.push(p);
+      continue;
+    }
+    const m = /^\/node_modules\/(?:.*\/node_modules\/)?((?:@[^/]+\/)?[^/]+)\/package\.json$/.exec(p);
+    if (m) {
+      const version = JSON.parse(asar.extractFile(asarPath, p.slice(1)).toString()).version;
+      lines.push(`module ${m[1]}@${version}`);
+    }
+  }
+  return [...new Set(lines)].sort();
+}
+
 const asarPath = flag('--asar');
 if (asarPath) {
-  const asar = require('@electron/asar');
-  const listing = asar.listPackage(asarPath, { isPack: false })
-    .map((p) => p.replace(/\\/g, '/'))
-    .sort();
+  const listing = describeAsar(asarPath);
   const out = flag('--out');
   if (out) fs.writeFileSync(out, listing.join('\n') + '\n');
   const snapshot = path.join('docs', 'kubuntu', 'windows-asar-listing.txt');
@@ -58,7 +75,7 @@ if (asarPath) {
     const added = listing.filter((p) => !expected.includes(p));
     const removed = expected.filter((p) => !listing.includes(p));
     if (added.length || removed.length) {
-      failures.push(`app.asar listing differs from snapshot: added=${JSON.stringify(added)} removed=${JSON.stringify(removed)}`);
+      failures.push(`app.asar contents differ from snapshot: added=${JSON.stringify(added)} removed=${JSON.stringify(removed)}`);
     }
   } else {
     console.warn(`No ${snapshot} snapshot committed; listing written to ${out || '(not written)'} for review.`);
