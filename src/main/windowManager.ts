@@ -13,7 +13,8 @@ export class WindowManager {
   private settingsWindow: BrowserWindow | null = null;
   private ytmView: WebContentsView | null = null;
   private isMiniMode = false;
-  private realWindowWasFocused = false;
+  private lastActiveBlurTime = 0;
+  private suppressProxyActivation = false;
 
   constructor(
     private settings: SettingsManager,
@@ -76,9 +77,23 @@ export class WindowManager {
     // Reposition ytmView on resize
     this.mainWindow.on('resize', () => this.positionYtmView());
 
-    // Track when the real player window loses focus so the proxy focus handler
-    // can distinguish "was foreground when clicked" from "was behind other windows".
-    this.mainWindow.on('blur', () => { this.realWindowWasFocused = true; });
+    // Track the last time the real player window lost focus. The proxy focus
+    // handler uses this timestamp to distinguish "YTM was just the foreground
+    // window when the taskbar icon was clicked" (< 150ms) from "YTM was behind
+    // other windows and the user clicked the taskbar to bring it forward".
+    this.mainWindow.on('blur', () => { this.lastActiveBlurTime = Date.now(); });
+
+    // Suppress proxy activation that is triggered by Windows handing focus to
+    // the proxy when the real window minimizes or hides. Without this, the
+    // proxy focus handler would immediately restore the window.
+    this.mainWindow.on('minimize', () => {
+      this.suppressProxyActivation = true;
+      setTimeout(() => { this.suppressProxyActivation = false; }, 500);
+    });
+    this.mainWindow.on('hide', () => {
+      this.suppressProxyActivation = true;
+      setTimeout(() => { this.suppressProxyActivation = false; }, 500);
+    });
 
     // Persist window bounds on close
     this.mainWindow.on('close', (e) => {
@@ -121,7 +136,6 @@ export class WindowManager {
       skipTaskbar: false,
       backgroundColor: '#1a1a2e',
       resizable: false,
-      minimizable: false,
       maximizable: false,
       hasShadow: false,
       webPreferences: {
@@ -132,28 +146,59 @@ export class WindowManager {
 
     this.proxyWindow.loadURL('about:blank');
 
+    // WS_EX_TRANSPARENT: proxy passes all mouse events through to whatever is
+    // beneath it. This prevents the 300x48 window at (0,0) from intercepting
+    // title-bar clicks when the main window is maximized. Does NOT affect
+    // WM_ACTIVATE, so taskbar clicks still reach the focus handler.
+    this.proxyWindow.setIgnoreMouseEvents(true, { forward: true });
+
     this.proxyWindow.webContents.on('did-finish-load', () => {
       const lastState = this.playerBridge.getLastState();
       this.updateThumbarButtons(lastState?.isPlaying ?? false);
     });
 
     // Taskbar icon click: Windows activates this proxy window. We blur it immediately
-    // and toggle the real player window (minimize if it was foreground, restore/focus otherwise).
+    // and toggle the real player window (minimize if it was just foreground, restore/focus otherwise).
+    // suppressProxyActivation guards against Windows handing focus here as a side-effect
+    // of the real window minimizing or hiding (which would cause an immediate restore loop).
     this.proxyWindow.on('focus', () => {
       this.proxyWindow?.blur();
-      const wasFocused = this.realWindowWasFocused;
-      this.realWindowWasFocused = false;
+      if (this.suppressProxyActivation) return;
 
       const realWin = this.isMiniMode ? this.miniWindow : this.mainWindow;
       if (!realWin) return;
 
-      if (wasFocused && realWin.isVisible() && !realWin.isMinimized()) {
+      // If the real window blurred less than 150ms ago it was the foreground
+      // window at the moment the taskbar button was clicked - minimize it.
+      const wasJustForeground = (Date.now() - this.lastActiveBlurTime) < 150;
+
+      if (wasJustForeground && realWin.isVisible() && !realWin.isMinimized()) {
         realWin.minimize();
       } else if (realWin.isMinimized()) {
         realWin.restore();
         realWin.focus();
       } else {
         realWin.show();
+        realWin.focus();
+      }
+    });
+
+    // When the proxy is already the foreground window (which happens when
+    // proxy.blur() finds no other window to give focus to after the real
+    // window minimized), clicking the taskbar button sends SC_MINIMIZE to
+    // the proxy instead of WM_ACTIVATE. We restore the proxy immediately
+    // and bring the real window back.
+    this.proxyWindow.on('minimize', () => {
+      this.proxyWindow?.restore();
+      const realWin = this.isMiniMode ? this.miniWindow : this.mainWindow;
+      if (!realWin) return;
+      if (realWin.isMinimized()) {
+        realWin.restore();
+        realWin.focus();
+      } else if (!realWin.isVisible()) {
+        realWin.show();
+        realWin.focus();
+      } else {
         realWin.focus();
       }
     });
@@ -282,7 +327,11 @@ export class WindowManager {
       }
     });
 
-    this.miniWindow.on('blur', () => { this.realWindowWasFocused = true; });
+    this.miniWindow.on('blur', () => { this.lastActiveBlurTime = Date.now(); });
+    this.miniWindow.on('hide', () => {
+      this.suppressProxyActivation = true;
+      setTimeout(() => { this.suppressProxyActivation = false; }, 500);
+    });
 
     this.miniWindow.on('close', () => {
       const bounds = this.miniWindow!.getBounds();
