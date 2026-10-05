@@ -57,7 +57,7 @@ function describeAsar(asarPath) {
     }
     const m = /^\/node_modules\/(?:.*\/node_modules\/)?((?:@[^/]+\/)?[^/]+)\/package\.json$/.exec(p);
     if (m) {
-      const version = JSON.parse(asar.extractFile(asarPath, p.slice(1)).toString()).version;
+      const version = JSON.parse(asar.extractFile(asarPath, raw.replace(/^[\\/]/, '')).toString()).version;
       lines.push(`module ${m[1]}@${version}`);
     }
   }
