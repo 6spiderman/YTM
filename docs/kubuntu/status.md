@@ -1,5 +1,7 @@
 # Status against the migration plan (updated 2026-10-05)
 
+**Merged to `master` on 2026-10-05 (e83f1e6) at the owner's explicit request, before the Windows gates W-A and W-B were run.** CI on `feat/kubuntu` (commit 4a2251f, identical tree) is green: Windows job (typecheck, lint, 103 tests, real NSIS installer build with Electron 44.4.3, build-input guard), Ubuntu job (`.deb` build, static checks, install, smoke test with `apparmor_restrict_unprivileged_userns` at 1 and at 0) and the audit job. No release or `v1.1.0` tag exists; the Windows download remains 1.0.0 until W-A/W-B pass. To undo: revert the two merge commits or reset to tag `win-baseline-1.0.0`.
+
 Legend: **Done** = implemented and verified by an automated check or command on the Kubuntu machine. **USER** = needs a person (Windows machine, sign-in, hearing/seeing, sudo, GitHub).
 
 ## Phases
@@ -7,7 +9,7 @@ Legend: **Done** = implemented and verified by an automated check or command on 
 | Phase | State |
 |---|---|
 | 0 Baseline | Done. `win-baseline-1.0.0` = `94fb935`; ext4 clone; tests tracked; baseline recorded. **USER, still open:** copy of `YTM Setup 1.0.0.exe` + sha512, backup of `%APPDATA%\ytm`, `node -v`/`npm -v` on Windows, W1-W16 run against 1.0.0 |
-| 1 Safety net | Done locally: CI workflow, Windows-inputs guard (script + asar snapshot), 21 Windows characterization tests. **USER:** push so CI actually runs (this machine has no GitHub credentials) |
+| 1 Safety net | Done locally: CI workflow, Windows-inputs guard (script + asar snapshot), 21 Windows characterization tests. CI has run and is green (it needed five small fixes for the Windows runner and Electron 26 builder, all committed) |
 | 2 Toolchain upgrade | Done on the branch: electron 44.4.3, electron-builder 26.16.1, @types/node 24.13.6; typecheck/tests/lint green; Windows target packages with the unchanged `electron-builder.yml` and a matching asar. `fast-uri` 3.1.8 applied and `postject` removed through an override, both approved 2026-10-05. **USER:** gate W-A on Windows |
 | 3 Spikes | Done where automatable (S1, S4, S5 partial, S6 partial, S7 transport, S10, S11, S12). **USER:** S3 sign-in, S5 key press, S6/S7/S8/S9/S13 visual checks |
 | 4 Implementation | Done: Linux modules, guarded wiring, 103 tests (18 suites) |
