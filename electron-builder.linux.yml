@@ -2,6 +2,12 @@
 # never replaces. Used via: electron-builder --linux deb --x64 --config electron-builder.linux.yml
 appId: com.go2cloud.ytm
 productName: YTM
+# Linux-only metadata injected into the packaged package.json at build time. Keeping it here (not in
+# package.json) leaves the Windows package untouched. electron-builder would otherwise derive the
+# homepage from the git remote and fail on clones that have none.
+extraMetadata:
+  homepage: https://github.com/6spiderman/YTM
+  desktopName: ytm.desktop
 directories:
   output: dist-installer-linux
   buildResources: packaging/linux
