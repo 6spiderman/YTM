@@ -4,6 +4,7 @@ import { SettingsManager } from './settingsManager';
 import { WindowManager } from './windowManager';
 import { PlayerBridge } from './playerBridge';
 import { PlayerState } from '../types';
+import { createLinuxTrayIcon } from './platform/linux/windowAssets';
 
 export class TrayManager {
   private tray: Tray | null = null;
@@ -20,6 +21,7 @@ export class TrayManager {
     const iconPath = path.join(app.getAppPath(), 'assets', 'icons', 'tray-icon.ico');
     const icon = nativeImage.createFromPath(iconPath);
     this.tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
+    if (process.platform === 'linux') this.tray.setImage(createLinuxTrayIcon());
     this.tray.setToolTip('YTM');
     this.buildMenu();
 

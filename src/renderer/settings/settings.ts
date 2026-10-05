@@ -186,6 +186,12 @@ async function resetToDefaults() {
   buildShortcutsTable();
 }
 
+// "Start with Windows" does not apply on Linux, where the same setting controls XDG autostart.
+if (/linux/i.test(navigator.platform)) {
+  const startLabel = document.querySelector('label[for="startWithWindows"]');
+  if (startLabel) startLabel.textContent = 'Start at login';
+}
+
 document.getElementById('saveBtn')?.addEventListener('click', save);
 document.getElementById('cancelBtn')?.addEventListener('click', () => window.settingsApi.closeSettings());
 document.getElementById('resetBtn')?.addEventListener('click', resetToDefaults);

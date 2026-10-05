@@ -3,6 +3,8 @@ import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
 import { Settings } from '../types';
+import { waylandPositionOverride } from './platform/linux/displayServer';
+import { applyLinuxWindowIcon } from './platform/linux/windowAssets';
 
 const TITLE_BAR_HEIGHT = 36;
 
@@ -43,6 +45,7 @@ export class WindowManager {
       },
     });
 
+    if (process.platform === 'linux') applyLinuxWindowIcon(this.mainWindow);
     this.mainWindow.loadFile(path.join(__dirname, '../renderer/main-window/index.html'));
 
     // Create YTM WebContentsView
@@ -117,7 +120,7 @@ export class WindowManager {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
     });
 
-    this.createProxyWindow();
+    if (process.platform === 'win32') this.createProxyWindow();
   }
 
   private createProxyWindow(): void {
@@ -317,6 +320,7 @@ export class WindowManager {
       },
     });
 
+    if (process.platform === 'linux') applyLinuxWindowIcon(this.miniWindow);
     this.miniWindow.loadFile(path.join(__dirname, '../renderer/mini-player/mini.html'));
 
     // Send current state immediately so mini-player shows up-to-date info on open
@@ -336,6 +340,7 @@ export class WindowManager {
     this.miniWindow.on('close', () => {
       const bounds = this.miniWindow!.getBounds();
       const s = this.settings.get();
+      if (process.platform === 'linux') Object.assign(bounds, waylandPositionOverride(s.miniPlayerBounds));
       this.settings.save({ ...s, miniPlayerBounds: { x: bounds.x, y: bounds.y } });
       this.miniWindow = null;
     });
@@ -361,6 +366,7 @@ export class WindowManager {
       },
     });
 
+    if (process.platform === 'linux') applyLinuxWindowIcon(this.settingsWindow);
     this.settingsWindow.loadFile(path.join(__dirname, '../renderer/settings/settings.html'));
 
     if (!app.isPackaged) {
@@ -386,6 +392,7 @@ export class WindowManager {
     if (!this.mainWindow) return;
     const bounds = this.mainWindow.getBounds();
     const s = this.settings.get();
+    if (process.platform === 'linux') Object.assign(bounds, waylandPositionOverride(s.windowBounds));
     this.settings.save({
       ...s,
       windowBounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height },

@@ -7,6 +7,7 @@ import { TrayManager } from './trayManager';
 import { ShortcutManager } from './shortcutManager';
 import { NotificationManager } from './notificationManager';
 import { PlayerBridge } from './playerBridge';
+import { installTerminationHandlers } from './platform/linux/lifecycle';
 
 const gotLock = app.requestSingleInstanceLock();
 
@@ -32,7 +33,7 @@ if (!gotLock) {
 
   app.whenReady().then(() => {
     app.setAppUserModelId('YTM');
-    if (app.isPackaged) {
+    if (app.isPackaged && process.platform === 'win32') {
       app.setAsDefaultProtocolClient('ytm');
     }
 
@@ -56,7 +57,7 @@ if (!gotLock) {
     windowManager = new WindowManager(settingsManager, playerBridge);
     trayManager = new TrayManager(settingsManager, windowManager, playerBridge);
     shortcutManager = new ShortcutManager(settingsManager, windowManager, playerBridge);
-    notificationManager = new NotificationManager(settingsManager);
+    notificationManager = new NotificationManager(settingsManager, (action) => playerBridge.execute(action));
 
     playerBridge.on('state-changed', (state: PlayerState) => {
       notificationManager.onStateChanged(state);
@@ -105,7 +106,16 @@ if (!gotLock) {
     ipcMain.on('player:seek', (_event, { position }) => playerBridge.seek(position));
   });
 
+  if (process.platform === 'linux') {
+    installTerminationHandlers(() => {
+      windowManager?.setQuitting(true);
+      app.quit();
+    });
+  }
+
   app.on('before-quit', () => {
+    if (process.platform === 'linux') windowManager?.setQuitting(true);
+    notificationManager?.dispose();
     shortcutManager?.unregisterAll();
     playerBridge?.destroy();
   });

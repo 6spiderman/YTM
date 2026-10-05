@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { SettingsManager } from './settingsManager';
 import { PlayerState } from '../types';
+import { LinuxNotifier } from './platform/linux/notifications';
 
 export function renderTemplate(template: string, artist: string, title: string): string {
   return template.replace('{artist}', artist).replace('{title}', title);
@@ -11,7 +12,13 @@ export function renderTemplate(template: string, artist: string, title: string):
 export class NotificationManager {
   private lastTrack = '';
 
-  constructor(private settings: SettingsManager) {}
+  private linuxNotifier: LinuxNotifier | null = null;
+
+  constructor(private settings: SettingsManager, private onAction?: (action: string) => void) {}
+
+  dispose(): void {
+    this.linuxNotifier?.dispose();
+  }
 
   onStateChanged(state: PlayerState): void {
     const { notifications } = this.settings.get();
@@ -97,6 +104,8 @@ export class NotificationManager {
   private showNotification(title: string, body: string, icon: string | undefined, sound: boolean): void {
     if (process.platform === 'win32' && app.isPackaged) {
       this.showToastNotification(title, body, icon, sound);
+    } else if (process.platform === 'linux') {
+      this.showLinuxNotification(title, body, icon, sound);
     } else {
       const n = new Notification({
         title,
@@ -106,6 +115,13 @@ export class NotificationManager {
       });
       n.show();
     }
+  }
+
+  private showLinuxNotification(title: string, body: string, icon: string | undefined, sound: boolean): void {
+    this.linuxNotifier ??= new LinuxNotifier((action) => this.onAction?.(action));
+    this.linuxNotifier.show({ title, body, iconPath: icon, sound }, () => {
+      new Notification({ title, body, icon, silent: !sound }).show();
+    });
   }
 
   private fetchAlbumArt(url: string): Promise<string> {
