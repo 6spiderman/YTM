@@ -5,3 +5,4 @@ dist-installer/
 .claude/
 docs/*
 !docs/kubuntu/
+dist-installer-linux/

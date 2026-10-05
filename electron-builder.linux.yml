@@ -1,0 +1,46 @@
+# Linux (Kubuntu/Ubuntu) packaging. Windows packaging stays in electron-builder.yml, which this file
+# never replaces. Used via: electron-builder --linux deb --x64 --config electron-builder.linux.yml
+appId: com.go2cloud.ytm
+productName: YTM
+directories:
+  output: dist-installer-linux
+  buildResources: packaging/linux
+files:
+  - dist/**/*
+  - assets/icons/icon.png
+  - package.json
+linux:
+  target:
+    - target: deb
+      arch: [x64]
+  executableName: ytm
+  icon: packaging/linux/icons
+  category: AudioVideo
+  synopsis: YouTube Music desktop app
+  description: YouTube Music in its own window, with a tray icon, global shortcuts, a mini player, track notifications and KDE media controls.
+  maintainer: YTM Contributors <6spiderman@users.noreply.github.com>
+  executableArgs:
+    - --ozone-platform=x11
+  desktop:
+    entry:
+      Comment: YouTube Music desktop app
+      Categories: AudioVideo;Audio;Player;
+      Keywords: music;youtube;player;
+      StartupWMClass: ytm
+deb:
+  # electron-builder's default list plus systemd, which provides busctl (used for notification buttons).
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+    - systemd
+  recommends:
+    - libappindicator3-1
+  packageCategory: sound
+  priority: optional

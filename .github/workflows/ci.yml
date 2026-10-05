@@ -62,3 +62,26 @@ jobs:
       - run: npx jest
       - name: Check Windows build inputs against baseline
         run: node scripts/check-windows-inputs.js win-baseline-1.0.0
+      - name: Install packaging and test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-utils desktop-file-utils
+      - name: Build the .deb
+        run: npm run build:linux
+      - name: Static .deb checks
+        run: scripts/check-deb.sh dist-installer-linux/ytm_*_amd64.deb
+      - name: Install the .deb
+        run: sudo apt-get install -y ./dist-installer-linux/ytm_*_amd64.deb
+      - name: Smoke test, unprivileged user namespaces restricted (stock Ubuntu default)
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
+          xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
+      - name: Smoke test, user namespaces unrestricted
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ytm-deb
+          path: dist-installer-linux/*.deb
+          if-no-files-found: error

@@ -1,6 +1,6 @@
 {
   "name": "ytm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "YouTube Music desktop app for Windows",
   "author": "YTM Contributors",
   "main": "dist/main/index.js",
@@ -8,7 +8,11 @@
     "dev": "concurrently \"tsc -w\" \"node scripts/bundle-renderer.js --watch\" \"cpx src/renderer/**/*.html dist/renderer --watch\" \"electron .\"",
     "build": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --win",
     "test": "jest",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "lint:linux": "eslint \"src/**/*.ts\"",
+    "dev:linux": "concurrently \"tsc -w\" \"node scripts/bundle-renderer.js --watch\" \"cpx \\\"src/renderer/**/*.html\\\" dist/renderer --watch\" \"electron . --ozone-platform=x11\"",
+    "build:linux": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --linux deb --x64 --config electron-builder.linux.yml --publish never"
   },
   "dependencies": {
     "electron-store": "^8.0.0"
