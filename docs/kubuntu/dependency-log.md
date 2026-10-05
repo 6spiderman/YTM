@@ -12,6 +12,10 @@ Freshness rule: only stable versions published on or before **cutoff = selection
 | fast-uri (transitive) | 3.1.2 | 3.1.8 | 2026-09-15 | Fixes the high-severity URI parsing advisories in shipped code. Approved by you 2026-10-05 as a fourth change |
 | @electron/windows-sign (override, transitive) | 1.2.2 | 1.0.0 | 2023-11-01 | Only version without a `postject` dependency; see below |
 
+## Refresh before release
+
+Selection must be repeated immediately before the release candidate. Electron 44.4.4 to 44.5.1 contain Chromium security updates and pass the 14-day rule on 2026-10-06 (44.4.4), 10-07 (44.4.5), 10-13 (44.5.0) and 10-14 (44.5.1).
+
 ## Exceptions
 
 | Package | Version | Problem | Resolution |

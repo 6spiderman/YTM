@@ -1,6 +1,6 @@
 # Dependency audit
 
-Tool: `npm audit` (GitHub Advisory Database via the npm registry), run 2026-10-05 in the ext4 clone on lockfile states below. Advisory IDs are GitHub advisory IDs. This is not a claim that any package is vulnerability-free; it records what was checked, with what, and when. OSV.dev, NVD and Ubuntu Security Notice checks are still to be added in Phase 6 (audit run 2).
+Tool: `npm audit` (GitHub Advisory Database via the npm registry), run 2026-10-05 in the ext4 clone on lockfile states below. Advisory IDs are GitHub advisory IDs. This is not a claim that any package is vulnerability-free; it records what was checked, with what, and when. Audit run 2 below adds OSV.dev and the Chromium check. NVD and Ubuntu Security Notice checks for the `.deb` system libraries are still open (see "Still to do").
 
 ## Run 1 results
 
@@ -26,3 +26,27 @@ Resolved by the upgrade: the `electron` advisories (runtime, end-of-life 30.x), 
 - No `setWindowOpenHandler`, navigation restriction or permission handler on the YouTube Music view.
 - Numeric values are interpolated into `executeJavaScript` strings (`src/main/playerBridge.ts`); inputs are clamped or numeric.
 - Album-art temp files in the temp directory are never deleted (`src/main/notificationManager.ts`).
+
+## Audit run 2 (2026-10-05, feat/kubuntu lockfile, 630 package versions)
+
+| Source | Result |
+|---|---|
+| OSV.dev `querybatch` over every name@version in `package-lock.json` | 11 packages have records: `fast-uri@3.1.2` (**shipped**, 4+ advisories) and 10 dev/build-only (`brace-expansion` x2, `js-yaml` x2, `baseline-browser-mapping`, `braces`, `browserslist`, `esbuild`, `http-cache-semantics`, `shell-quote`). Same set as `npm audit`; no new shipped package |
+| GitHub Advisory Database, `affects=electron@44.4.3` | none returned |
+| Electron release notes, 44.4.4 to 44.5.1 | Each carries Chromium/V8/Dawn/PDFium security updates (44.4.4 on 2026-09-22, 44.4.5 on 09-23, 44.5.0 on 09-29, 44.5.1 on 09-30). They were published after the 2026-09-21 cutoff, so 44.4.3 is the newest version the rule allows today |
+
+**Consequence:** the Chromium inside the Electron binary is not covered by npm advisories. Electron 44.4.3 lacks four later Chromium security drops. They become eligible under the 14-day rule one by one: 44.4.4 on 2026-10-06, 44.4.5 on 10-07, 44.5.0 on 10-13, 44.5.1 on **2026-10-14**. Re-run the selection (section 4.5 of the plan) immediately before building the release candidate and use the then-newest eligible 44.x. That is a repeat of the Windows gate W-A for the new binary.
+
+## Still to do
+
+- NVD/CVE detail lookups for the remaining findings if you want severity scores beyond the GitHub advisory ratings.
+- Ubuntu Security Notices for the `.deb` system dependencies (`libnss3`, `libgtk-3-0t64`, `libsecret-1-0`, ...) on the target release; these are updated through apt, not bundled.
+- `npm audit signatures` could **not** complete: it stops with `EEXPIREDSIGNATUREKEY`, e.g. `concurrently@8.2.2` and `@types/jest@29.5.14` carry a registry signature whose public key (`SHA256:jl3bwswu...`) expired 2025-01-29. This is a limitation of verifying older publications, not a finding against any package. Registry signatures are therefore **unverified** for the dev tooling; `npm ci` still enforces the integrity hashes recorded in the lockfile.
+
+## Result after the approved changes (2026-10-05)
+
+- `npm audit --omit=dev`: **0 vulnerabilities** (the shipped tree: `electron-store` and its closure).
+- `npm audit` full tree: 43 findings (41 high, 1 moderate, 1 low), all in dev/build tooling (jest, eslint, browserslist, js-yaml, shell-quote, braces, brace-expansion, http-cache-semantics, esbuild, baseline-browser-mapping). Reported, not upgraded: the fixes are major version changes outside the approved scope.
+- `postject` prerelease removed. `fast-uri` 3.1.8 in place.
+- The Electron binary's own Chromium patch level is the remaining shipped-code exposure; see the refresh note above.
+- CI: the `audit` job fails the build on a High or Critical advisory in the shipped (`--omit=dev`) tree.

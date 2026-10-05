@@ -1,6 +1,7 @@
 import Store from 'electron-store';
 import { app } from 'electron';
 import { Settings } from '../types';
+import { applyAutostart } from './platform/linux/autostart';
 
 const DEFAULT_SETTINGS: Settings = {
   windowBounds: { x: undefined, y: undefined, width: 1200, height: 800 },
@@ -66,6 +67,7 @@ export class SettingsManager {
     this.store.set('notifications', settings.notifications);
 
     app.setLoginItemSettings({ openAtLogin: settings.startWithWindows });
+    if (process.platform === 'linux') applyAutostart(settings.startWithWindows);
   }
 
   getDefaults(): Settings {

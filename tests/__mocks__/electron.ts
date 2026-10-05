@@ -4,6 +4,7 @@ export const app = {
     return '/tmp';
   }),
   getAppPath: jest.fn(() => '/app'),
+  commandLine: { getSwitchValue: jest.fn(() => '') },
   isPackaged: false,
   on: jest.fn(),
   quit: jest.fn(),
@@ -35,6 +36,7 @@ export const Notification = jest.fn().mockImplementation(() => ({
 
 export const Tray = jest.fn().mockImplementation(() => ({
   setToolTip: jest.fn(),
+  setImage: jest.fn(),
   setContextMenu: jest.fn(),
   on: jest.fn(),
 }));
@@ -44,7 +46,7 @@ export const Menu = {
 };
 
 export const nativeImage = {
-  createFromPath: jest.fn(() => ({ isEmpty: () => false })),
+  createFromPath: jest.fn(() => ({ isEmpty: () => false, resize: jest.fn(() => ({ resized: true })) })),
   createEmpty: jest.fn(() => ({})),
 };
 

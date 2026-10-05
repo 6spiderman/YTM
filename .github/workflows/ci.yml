@@ -33,7 +33,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p ci-out
-          cp dist-installer/builder-effective-config.yaml ci-out/
+          # electron-builder 26 no longer writes builder-effective-config.yaml; keep whatever metadata exists.
+          cp dist-installer/builder-*.y*ml ci-out/ 2>/dev/null || true
           node scripts/check-windows-inputs.js win-baseline-1.0.0 \
             --asar dist-installer/win-unpacked/resources/app.asar --out ci-out/asar-listing.txt
       # actions/upload-artifact v7.0.1 (released 2026-04-10)
@@ -62,3 +63,38 @@ jobs:
       - run: npx jest
       - name: Check Windows build inputs against baseline
         run: node scripts/check-windows-inputs.js win-baseline-1.0.0
+      - name: Install packaging and test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-utils desktop-file-utils
+      - name: Build the .deb
+        run: npm run build:linux
+      - name: Static .deb checks
+        run: scripts/check-deb.sh dist-installer-linux/ytm_*_amd64.deb
+      - name: Install the .deb
+        run: sudo apt-get install -y ./dist-installer-linux/ytm_*_amd64.deb
+      - name: Smoke test, unprivileged user namespaces restricted (stock Ubuntu default)
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
+          xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
+      - name: Smoke test, user namespaces unrestricted
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ytm-deb
+          path: dist-installer-linux/*.deb
+          if-no-files-found: error
+
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Shipped dependencies must have no High or Critical advisory
+        run: npm audit --package-lock-only --omit=dev --audit-level=high
+      - name: Full tree (report only; dev tooling findings are tracked in docs/kubuntu/dependency-audit.md)
+        run: npm audit --package-lock-only || true
