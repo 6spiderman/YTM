@@ -9,17 +9,19 @@ Freshness rule: only stable versions published on or before **cutoff = selection
 | electron | 30.5.1 | 44.4.3 | 2026-09-18 | Supported line (44 stable 2026-08-25, EOL 2027-03-02). 44.4.4 to 44.5.1 were published after the cutoff and are not used |
 | electron-builder | 24.13.3 | 26.16.1 | 2026-09-07 | Current 26.x on or before cutoff (26.17.0 published 2026-09-26, not used) |
 | @types/node | 20.19.41 | 24.13.6 | 2026-09-19 | Electron 44 bundles Node 24 (24.18.1) |
+| fast-uri (transitive) | 3.1.2 | 3.1.8 | 2026-09-15 | Fixes the high-severity URI parsing advisories in shipped code. Approved by you 2026-10-05 as a fourth change |
+| @electron/windows-sign (override, transitive) | 1.2.2 | 1.0.0 | 2023-11-01 | Only version without a `postject` dependency; see below |
 
-## Exceptions needing approval
+## Exceptions
 
-| Package | Version | Problem | Where it comes from | Status |
-|---|---|---|---|---|
-| postject | 1.0.0-alpha.6 | Prerelease. The package has **no stable release** (all six published versions are alphas) | Optional, dev-only transitive of `electron-builder-squirrel-windows` > `electron-winstaller` > `@electron/windows-sign`. Not part of the packaged app; the Squirrel target is not used (NSIS and deb only) | **Pending approval.** Not silently accepted. The freshness script fails on it until an approved-exception list is added |
+| Package | Version | Problem | Resolution |
+|---|---|---|---|
+| postject | 1.0.0-alpha.6 | Prerelease with no stable release, optional dev-only transitive of `@electron/windows-sign` | **Removed**, at your request 2026-10-05, with `overrides: { "electron-winstaller": { "@electron/windows-sign": "1.0.0" } }` in `package.json`. `@electron/windows-sign` is only used by electron-builder's Squirrel.Windows target, which this project does not build (NSIS and deb only). Windows packaging, the asar guard and the Linux build were rerun and pass. If a future electron-builder starts to need windows-sign for NSIS, drop the override and raise it again |
 
 ## Full list of added or changed packages (generated)
 
 Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclusive); verified 2026-10-05 via registry.npmjs.org.
-103 added or changed package versions; 1 failing.
+104 added or changed package versions; 0 failing.
 
 | Package | From | To | Scope | Published | Source | Status |
 |---|---|---|---|---|---|---|
@@ -31,7 +33,7 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | @electron/osx-sign | 1.0.5 | 1.3.3 | dev | 2025-03-05 | https://registry.npmjs.org/@electron%2Fosx-sign | ok |
 | @electron/rebuild | (new) | 4.2.0 | dev | 2026-07-07 | https://registry.npmjs.org/@electron%2Frebuild | ok |
 | @electron/universal | 1.5.1 | 2.0.3 | dev | 2025-05-02 | https://registry.npmjs.org/@electron%2Funiversal | ok |
-| @electron/windows-sign | (new) | 1.2.2 | dev | 2025-05-02 | https://registry.npmjs.org/@electron%2Fwindows-sign | ok |
+| @electron/windows-sign | (new) | 1.0.0 | dev | 2023-11-01 | https://registry.npmjs.org/@electron%2Fwindows-sign | ok |
 | @isaacs/fs-minipass | (new) | 4.0.1 | dev | 2024-04-18 | https://registry.npmjs.org/@isaacs%2Ffs-minipass | ok |
 | @malept/cross-spawn-promise | 1.1.1 | 2.0.0 | dev | 2021-07-02 | https://registry.npmjs.org/@malept%2Fcross-spawn-promise | ok |
 | @noble/hashes | (new) | 1.8.0 | dev | 2025-04-21 | https://registry.npmjs.org/@noble%2Fhashes | ok |
@@ -56,9 +58,7 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | chownr | 2.0.0 | 3.0.0 | dev | 2024-04-06 | https://registry.npmjs.org/chownr | ok |
 | ci-info | (new) | 4.3.1 | dev | 2025-10-05 | https://registry.npmjs.org/ci-info | ok |
 | ci-info | (new) | 4.4.0 | dev | 2026-01-29 | https://registry.npmjs.org/ci-info | ok |
-| commander | (new) | 9.5.0 | dev | 2023-01-07 | https://registry.npmjs.org/commander | ok |
 | core-util-is | 1.0.2 | 1.0.3 | dev | 2021-08-31 | https://registry.npmjs.org/core-util-is | ok |
-| cross-dirname | (new) | 0.1.0 | dev | 2022-07-22 | https://registry.npmjs.org/cross-dirname | ok |
 | dir-compare | 3.3.0 | 4.2.0 | dev | 2023-08-20 | https://registry.npmjs.org/dir-compare | ok |
 | dmg-builder | 24.13.3 | 26.16.1 | dev | 2026-09-07 | https://registry.npmjs.org/dmg-builder | ok |
 | dotenv | 9.0.2 | 16.6.1 | dev | 2025-06-27 | https://registry.npmjs.org/dotenv | ok |
@@ -71,10 +71,12 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | electron-winstaller | (new) | 5.4.0 | dev | 2024-07-23 | https://registry.npmjs.org/electron-winstaller | ok |
 | env-paths | (new) | 3.0.0 | dev | 2021-08-27 | https://registry.npmjs.org/env-paths | ok |
 | exponential-backoff | (new) | 3.1.3 | dev | 2025-10-10 | https://registry.npmjs.org/exponential-backoff | ok |
+| fast-uri | 3.1.2 | 3.1.8 | prod | 2026-09-15 | https://registry.npmjs.org/fast-uri | ok |
 | fdir | (new) | 6.5.0 | dev | 2025-08-14 | https://registry.npmjs.org/fdir | ok |
 | form-data | 4.0.5 | 4.0.6 | dev | 2026-06-12 | https://registry.npmjs.org/form-data | ok |
 | fs-extra | (new) | 9.1.0 | dev | 2021-01-19 | https://registry.npmjs.org/fs-extra | ok |
 | fs-extra | (new) | 8.1.0 | dev | 2019-06-28 | https://registry.npmjs.org/fs-extra | ok |
+| fs-extra | (new) | 11.4.0 | dev | 2026-07-23 | https://registry.npmjs.org/fs-extra | ok |
 | fs-extra | (new) | 7.0.1 | dev | 2018-11-07 | https://registry.npmjs.org/fs-extra | ok |
 | fs-extra | (new) | 11.3.1 | dev | 2025-08-05 | https://registry.npmjs.org/fs-extra | ok |
 | hasown | 2.0.3 | 2.0.4 | dev | 2026-05-28 | https://registry.npmjs.org/hasown | ok |
@@ -85,6 +87,7 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | jiti | (new) | 2.7.0 | dev | 2026-05-05 | https://registry.npmjs.org/jiti | ok |
 | json-schema-traverse | (new) | 1.0.0 | dev | 2020-12-13 | https://registry.npmjs.org/json-schema-traverse | ok |
 | jsonfile | (new) | 4.0.0 | dev | 2017-09-12 | https://registry.npmjs.org/jsonfile | ok |
+| jsonfile | (new) | 6.2.1 | dev | 2026-04-20 | https://registry.npmjs.org/jsonfile | ok |
 | minimatch | 5.1.9 | 10.2.6 | dev | 2026-07-27 | https://registry.npmjs.org/minimatch | ok |
 | minipass | 5.0.0 | 7.1.3 | dev | 2026-02-19 | https://registry.npmjs.org/minipass | ok |
 | minizlib | 2.1.2 | 3.1.0 | dev | 2025-09-21 | https://registry.npmjs.org/minizlib | ok |
@@ -97,7 +100,6 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | picomatch | (new) | 4.0.7 | dev | 2026-08-24 | https://registry.npmjs.org/picomatch | ok |
 | pkijs | (new) | 3.4.1 | dev | 2026-09-20 | https://registry.npmjs.org/pkijs | ok |
 | plist | 3.1.1 | 3.1.0 | dev | 2023-07-06 | https://registry.npmjs.org/plist | ok |
-| postject | (new) | 1.0.0-alpha.6 | dev | 2023-05-19 | https://registry.npmjs.org/postject | FAIL prerelease |
 | proc-log | (new) | 6.1.0 | dev | 2025-11-25 | https://registry.npmjs.org/proc-log | ok |
 | proper-lockfile | (new) | 4.1.2 | dev | 2021-01-25 | https://registry.npmjs.org/proper-lockfile | ok |
 | pvtsutils | (new) | 1.3.6 | dev | 2024-11-22 | https://registry.npmjs.org/pvtsutils | ok |
@@ -121,6 +123,7 @@ Freshness check against baseline `win-baseline-1.0.0`; cutoff 2026-09-21 (inclus
 | undici | (new) | 7.29.1 | dev | 2026-09-04 | https://registry.npmjs.org/undici | ok |
 | undici-types | 6.21.0 | 7.18.2 | dev | 2026-01-06 | https://registry.npmjs.org/undici-types | ok |
 | universalify | (new) | 0.1.2 | dev | 2018-06-20 | https://registry.npmjs.org/universalify | ok |
+| universalify | (new) | 2.0.1 | dev | 2023-11-01 | https://registry.npmjs.org/universalify | ok |
 | unzipper | (new) | 0.12.5 | dev | 2026-06-21 | https://registry.npmjs.org/unzipper | ok |
 | webcrypto-core | (new) | 1.9.2 | dev | 2026-05-01 | https://registry.npmjs.org/webcrypto-core | ok |
 | which | (new) | 5.0.0 | dev | 2024-10-01 | https://registry.npmjs.org/which | ok |
