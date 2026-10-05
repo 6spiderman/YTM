@@ -56,7 +56,7 @@ module dot-prop@6.0.1
 module electron-store@8.2.0
 module env-paths@2.2.1
 module fast-deep-equal@3.1.3
-module fast-uri@3.1.2
+module fast-uri@3.1.8
 module find-up@3.0.0
 module is-obj@2.0.0
 module json-schema-traverse@1.0.0
