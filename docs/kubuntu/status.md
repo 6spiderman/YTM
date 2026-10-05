@@ -8,7 +8,7 @@ Legend: **Done** = implemented and verified by an automated check or command on 
 |---|---|
 | 0 Baseline | Done. `win-baseline-1.0.0` = `94fb935`; ext4 clone; tests tracked; baseline recorded. **USER, still open:** copy of `YTM Setup 1.0.0.exe` + sha512, backup of `%APPDATA%\ytm`, `node -v`/`npm -v` on Windows, W1-W16 run against 1.0.0 |
 | 1 Safety net | Done locally: CI workflow, Windows-inputs guard (script + asar snapshot), 21 Windows characterization tests. **USER:** push so CI actually runs (this machine has no GitHub credentials) |
-| 2 Toolchain upgrade | Done on the branch: electron 44.4.3, electron-builder 26.16.1, @types/node 24.13.6; typecheck/tests/lint green; Windows target packages with the unchanged `electron-builder.yml` and a matching asar. **USER:** gate W-A on Windows. **Needs approval:** `postject@1.0.0-alpha.6` (prerelease, no stable exists), `fast-uri` 3.1.8 |
+| 2 Toolchain upgrade | Done on the branch: electron 44.4.3, electron-builder 26.16.1, @types/node 24.13.6; typecheck/tests/lint green; Windows target packages with the unchanged `electron-builder.yml` and a matching asar. `fast-uri` 3.1.8 applied and `postject` removed through an override, both approved 2026-10-05. **USER:** gate W-A on Windows |
 | 3 Spikes | Done where automatable (S1, S4, S5 partial, S6 partial, S7 transport, S10, S11, S12). **USER:** S3 sign-in, S5 key press, S6/S7/S8/S9/S13 visual checks |
 | 4 Implementation | Done: Linux modules, guarded wiring, 103 tests (18 suites) |
 | 5 Packaging | Done: `.deb` builds, static checks pass, apt resolves dependencies, smoke test passes on `linux-unpacked`. **USER:** `sudo apt install` of the deb on this machine and on a clean VM |
