@@ -38,6 +38,10 @@ describe('WindowManager on win32 (characterization)', () => {
     restorePlatform();
   });
 
+  const lastThumbarButtons = () => {
+    const calls = (proxy().setThumbarButtons as jest.Mock).mock.calls;
+    return calls[calls.length - 1][0];
+  };
   const main = () => wins[0];
   const proxy = () => wins[1];
 
@@ -52,19 +56,19 @@ describe('WindowManager on win32 (characterization)', () => {
 
   it('sets Previous / Play / Next thumbar buttons when the proxy finishes loading', () => {
     fire(proxy().webContents, 'did-finish-load');
-    const buttons = (proxy().setThumbarButtons as jest.Mock).mock.calls.at(-1)![0];
+    const buttons = lastThumbarButtons();
     expect(buttons.map((b: { tooltip: string }) => b.tooltip)).toEqual(['Previous Track', 'Play', 'Next Track']);
   });
 
   it('switches the middle thumbar button to Pause when the player state is playing', () => {
     bridge.emit('state-changed', { isPlaying: true });
-    const buttons = (proxy().setThumbarButtons as jest.Mock).mock.calls.at(-1)![0];
+    const buttons = lastThumbarButtons();
     expect(buttons[1].tooltip).toBe('Pause');
   });
 
   it('routes thumbar button clicks to the player bridge', () => {
     fire(proxy().webContents, 'did-finish-load');
-    const buttons = (proxy().setThumbarButtons as jest.Mock).mock.calls.at(-1)![0];
+    const buttons = lastThumbarButtons();
     buttons[0].click();
     buttons[1].click();
     buttons[2].click();
