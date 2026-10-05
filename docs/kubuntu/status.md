@@ -18,7 +18,7 @@ Legend: **Done** = implemented and verified by an automated check or command on 
 | 5 Packaging | Done: `.deb` builds, static checks pass, apt resolves dependencies, smoke test passes on `linux-unpacked`. **USER:** `sudo apt install` of the deb on this machine and on a clean VM |
 | 6 Full test pass | Partly: automated tests and audit run 2 done. Matrix rows below need you. W-B pending |
 | 7 Documentation | README and docs/kubuntu updated |
-| 8 Release | Not started: needs W-A and W-B, Electron reselection (see dependency log), your push/tag/publish |
+| 8 Release | Draft release `v1.1.0` created 2026-10-05 with both installers (private until you press Publish). Still needed before publishing: W-A/W-B on Windows, Electron reselection on or after 2026-10-14 (then rebuild both installers and re-upload), and repo access for whoever you share with (the repo is private) |
 
 ## Kubuntu matrix (plan 4.3)
 
