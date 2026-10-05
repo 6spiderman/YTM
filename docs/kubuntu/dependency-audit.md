@@ -41,5 +41,12 @@ Resolved by the upgrade: the `electron` advisories (runtime, end-of-life 30.x), 
 
 - NVD/CVE detail lookups for the remaining findings if you want severity scores beyond the GitHub advisory ratings.
 - Ubuntu Security Notices for the `.deb` system dependencies (`libnss3`, `libgtk-3-0t64`, `libsecret-1-0`, ...) on the target release; these are updated through apt, not bundled.
-- `npm audit signatures`, to be run after the final lockfile is fixed.
-- A CI audit job: held until you decide on `fast-uri` and `postject`, because it would fail on the `fast-uri` High until then.
+- `npm audit signatures` could **not** complete: it stops with `EEXPIREDSIGNATUREKEY`, e.g. `concurrently@8.2.2` and `@types/jest@29.5.14` carry a registry signature whose public key (`SHA256:jl3bwswu...`) expired 2025-01-29. This is a limitation of verifying older publications, not a finding against any package. Registry signatures are therefore **unverified** for the dev tooling; `npm ci` still enforces the integrity hashes recorded in the lockfile.
+
+## Result after the approved changes (2026-10-05)
+
+- `npm audit --omit=dev`: **0 vulnerabilities** (the shipped tree: `electron-store` and its closure).
+- `npm audit` full tree: 43 findings (41 high, 1 moderate, 1 low), all in dev/build tooling (jest, eslint, browserslist, js-yaml, shell-quote, braces, brace-expansion, http-cache-semantics, esbuild, baseline-browser-mapping). Reported, not upgraded: the fixes are major version changes outside the approved scope.
+- `postject` prerelease removed. `fast-uri` 3.1.8 in place.
+- The Electron binary's own Chromium patch level is the remaining shipped-code exposure; see the refresh note above.
+- CI: the `audit` job fails the build on a High or Critical advisory in the shipped (`--omit=dev`) tree.

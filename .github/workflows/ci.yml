@@ -85,3 +85,15 @@ jobs:
           name: ytm-deb
           path: dist-installer-linux/*.deb
           if-no-files-found: error
+
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Shipped dependencies must have no High or Critical advisory
+        run: npm audit --package-lock-only --omit=dev --audit-level=high
+      - name: Full tree (report only; dev tooling findings are tracked in docs/kubuntu/dependency-audit.md)
+        run: npm audit --package-lock-only || true
