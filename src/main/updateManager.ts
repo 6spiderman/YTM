@@ -91,7 +91,7 @@ export class UpdateManager extends EventEmitter {
       this.setState({ kind: 'downloading', version, percent: Math.round(p.percent) });
     });
     u.on('update-downloaded', (info: UpdateInfo) => this.setState({ kind: 'downloaded', version: info.version }));
-    u.on('error', (err: Error) => this.setState({ kind: 'error', message: err?.message ?? String(err) }));
+    u.on('error', (err: Error) => this.setState({ kind: 'error', message: describeError(err) }));
   }
 
   private currentVersion(): string {
@@ -127,7 +127,7 @@ export class UpdateManager extends EventEmitter {
       .checkForUpdates()
       .then(() => this.state)
       .catch((err: Error) => {
-        this.setState({ kind: 'error', message: err?.message ?? String(err) });
+        this.setState({ kind: 'error', message: describeError(err) });
         return this.state;
       })
       .finally(() => {
@@ -143,7 +143,7 @@ export class UpdateManager extends EventEmitter {
     try {
       await this.updater.downloadUpdate();
     } catch (err) {
-      this.setState({ kind: 'error', message: (err as Error)?.message ?? String(err) });
+      this.setState({ kind: 'error', message: describeError(err) });
     }
   }
 
@@ -184,6 +184,15 @@ export class UpdateManager extends EventEmitter {
     this.stop();
     this.removeAllListeners();
   }
+}
+
+/** One short, user-readable line; electron-updater errors carry headers and stack traces. */
+export function describeError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  if (/Cannot find latest.*\.yml/i.test(raw)) return 'The latest release has no update information yet.';
+  if (/ENOTFOUND|ECONNREFUSED|ETIMEDOUT|net::ERR_/i.test(raw)) return 'Could not reach the update server. Check your connection.';
+  const firstLine = raw.split('\n')[0].trim();
+  return firstLine.length > 160 ? `${firstLine.slice(0, 157)}…` : firstLine;
 }
 
 function releaseNotesText(info: UpdateInfo): string | undefined {
