@@ -8,8 +8,12 @@ import { ShortcutManager } from './shortcutManager';
 import { NotificationManager } from './notificationManager';
 import { PlayerBridge } from './playerBridge';
 import { installTerminationHandlers } from './platform/linux/lifecycle';
+import { relaunchInX11IfNeeded } from './platform/linux/displayServer';
 
-const gotLock = app.requestSingleInstanceLock();
+// Linux: a flag-less start inside a Wayland session restarts itself in X11 mode (see displayServer.ts).
+// This must happen before the single-instance lock so the new instance can take it.
+const relaunching = process.platform === 'linux' && relaunchInX11IfNeeded();
+const gotLock = !relaunching && app.requestSingleInstanceLock();
 
 if (!gotLock) {
   app.quit();
