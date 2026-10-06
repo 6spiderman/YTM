@@ -1,4 +1,4 @@
-# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (merged, tagged, draft release)
+# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (1.2.0 published)
 
 Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/linux-distros` in `~/src/YTM`. The 1.1.0 Kubuntu work and its open items are in `docs/kubuntu/status.md`.
 
@@ -22,7 +22,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 | 4 CI | Green on 453842c: windows, ubuntu (4 packages, static checks, deb smoke with userns restricted and unrestricted, AppImage smoke), audit, and the five container rows |
 | 5 Docs | README, tester checklist, issue form, this file |
 | 6 Version | 1.2.0; Electron 44.4.4 selected 2026-10-06 under the freshness rule (`dependency-log.md`) |
-| 7 Release | PR #1 merged to master (a6f8ace) and tagged `v1.2.0` on 2026-10-06. Draft release 404611976 holds the four Linux packages from CI run 37448787332 plus `SHA512SUMS`. **USER:** Windows gates W-A/W-B with the run's `windows-installer` artifact, attach `YTM Setup 1.2.0.exe`, publish |
+| 7 Release | PR #1 merged to master (a6f8ace) and tagged `v1.2.0` on 2026-10-06. **Published 2026-10-06** as https://github.com/6spiderman/YTM/releases/tag/v1.2.0 after external testers passed, with the four Linux packages and `YTM Setup 1.2.0.exe` from CI run 37448787332 plus `SHA512SUMS` |
 
 ## Per-distro matrix
 
@@ -42,4 +42,4 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 1. Optional: `sudo apt install rpm libarchive-tools` to build and check the rpm and pacman packages locally (CI already does).
 2. Install the 1.2.0 deb over 1.1.0 and run `docs/linux/tester-checklist.md` yourself; also start the AppImage from a terminal without flags.
 3. Grant repository access to testers (or make the repo public) and send them the checklist link.
-4. Windows gates W-A/W-B with the CI-built `YTM Setup 1.2.0.exe` (artifact `windows-installer` of the green run), attach it to the draft release, publish.
+4. Done: Windows and Linux testing by other developers passed; 1.2.0 published.
