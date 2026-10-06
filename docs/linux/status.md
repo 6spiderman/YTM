@@ -1,4 +1,4 @@
-# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.1 published; 1.3.0 in progress)
+# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.3.0 published)
 
 ## 1.3.0: update notification + auto-update, taskbar progress, arrow-key shortcut fix, opt-in native Wayland
 
@@ -15,7 +15,7 @@ Owner decisions: the repository becomes public (needed by the unauthenticated Gi
 | 4 Taskbar progress | Done: proxy window on Windows (paused mode), player window on Linux via LauncherEntry |
 | 5 Native Wayland | Done: setting + relaunch from the x11 launcher, portal denials recorded, always-on-top disabled there |
 | 6 CI / snapshot / docs | CI uploads `latest*.yml` and blockmaps; Windows asar snapshot refreshed (S24: +21 expected lines, nothing removed). Docs updated |
-| 7 Release | Procedure below; **USER:** make the repo public, Windows gates W-A/W-B, GNOME tester, merge, publish |
+| 7 Release | **Published 2026-10-06** as https://github.com/6spiderman/YTM/releases/tag/v1.3.0 (PR #3 merged as 4348aa8) with `YTM-Setup-1.3.0.exe` + `.blockmap`, `latest.yml`, the four Linux packages, `latest-linux.yml` and `SHA512SUMS` from CI run 37496949709; every size and sha512 in the metadata was verified before upload. **USER:** Windows checks on 1.3.0, GNOME tester, Plasma keypress for native Wayland |
 
 Spikes S20–S24: see `spikes.md`. Unit tests: 203 (`npx jest`).
 
@@ -29,10 +29,10 @@ Spikes S20–S24: see `spikes.md`. Unit tests: 203 (`npx jest`).
 
 ### Open USER items for 1.3.0
 
-1. Make the repository public (before spike S20 can pass).
+1. Done: the repository is public.
 2. Windows gate W-A on a fresh 1.3.0 install: taskbar progress (and paused mode), arrow-key shortcut capture, Settings → Updates. Gate W-B: 1.2.1 → 1.3.0 through the published release (notification, tray entry, download, UAC prompt, relaunch).
 3. A GNOME tester for the Wayland shortcut consent dialog; one keypress on Plasma for S23.
-4. Merge the PR; publish per the procedure above.
+4. Done: merged and published. From now on the in-app updater announces each new release; the first real self-update happens with 1.3.1 or later.
 
 
 ## 1.2.1: fixes from the first round of Linux testing
