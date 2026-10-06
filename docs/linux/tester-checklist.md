@@ -1,4 +1,4 @@
-# YTM 1.2.0 on Linux: tester checklist
+# YTM 1.3.0 on Linux: tester checklist
 
 Thank you for testing. This takes about 20 minutes. Fill in the environment block, work through the
 checks, then report (last section). Every line is Pass / Fail / N-A; a Fail with one sentence of what
@@ -21,11 +21,11 @@ Also note: package format you installed (deb / rpm / pacman / AppImage), monitor
 
 | Format | Command |
 |---|---|
-| Debian, Ubuntu, Mint, Pop!_OS | `sudo apt install ./ytm_1.2.0_amd64.deb` |
-| Fedora, RHEL family | `sudo dnf install ./ytm-1.2.0.x86_64.rpm` |
-| openSUSE | `sudo zypper install --allow-unsigned-rpm ./ytm-1.2.0.x86_64.rpm` |
-| Arch, Manjaro, EndeavourOS | `sudo pacman -U ytm-1.2.0-1-x86_64.pkg.tar.zst` |
-| Anything else | `chmod +x YTM-1.2.0-x86_64.AppImage && ./YTM-1.2.0-x86_64.AppImage` |
+| Debian, Ubuntu, Mint, Pop!_OS | `sudo apt install ./ytm_1.3.0_amd64.deb` |
+| Fedora, RHEL family | `sudo dnf install ./ytm-1.3.0.x86_64.rpm` |
+| openSUSE | `sudo zypper install --allow-unsigned-rpm ./ytm-1.3.0.x86_64.rpm` |
+| Arch, Manjaro, EndeavourOS | `sudo pacman -U ytm-1.3.0-1-x86_64.pkg.tar.zst` |
+| Anything else | `chmod +x YTM-1.3.0-x86_64.AppImage && ./YTM-1.3.0-x86_64.AppImage` |
 
 The AppImage needs unprivileged user namespaces. On Ubuntu 24.04 and newer it stops with a message
 about the sandbox; that is expected, use the `.deb` there.
@@ -35,9 +35,9 @@ about the sandbox; that is expected, use the `.deb` there.
 | # | Check | Expected | Result |
 |---|---|---|---|
 | 1 | Start YTM from the application menu | Window opens, YouTube Music loads | |
-| 2 | Quit, then start from a terminal: `ytm` (AppImage: `./YTM-1.2.0-x86_64.AppImage`) | Same window; in a Wayland session the terminal prints one `[display] … relaunching … in X11 mode` line | |
+| 2 | Quit, then start from a terminal: `ytm` (AppImage: `./YTM-1.3.0-x86_64.AppImage`) | Same window; in a Wayland session the terminal prints one `[display] … relaunching … in X11 mode` line | |
 | 3 | Window icon and taskbar/dock | YTM icon shown; exactly one entry | |
-| 4 | Tray icon: left click, right-click menu | Left click shows/hides the window; menu has Show, Settings, Quit (GNOME: needs the AppIndicator extension) | |
+| 4 | Tray icon: left click, right-click menu | Left click shows/hides the window; menu has the current track, Play / Pause, Previous, Next, Like, Dislike, Full Player, Mini Player, Check for updates…, Settings, Quit (GNOME: needs the AppIndicator extension) | |
 | 5 | Sign in to Google, quit, start again | Still signed in | |
 | 6 | Play a track, pause, next, previous | Works, audio plays | |
 | 7 | Change track with notifications enabled (Settings → Notifications) | Notification with album art and Previous / Play-Pause / Next buttons; all three buttons act | |
@@ -48,13 +48,17 @@ about the sandbox; that is expected, use the `.deb` there.
 | 12 | Upgrade (deb/rpm/pacman only): install over an existing 1.1.0 if you had one | Settings and sign-in kept | |
 | 13 | Uninstall (`apt remove ytm` / `dnf remove ytm` / `pacman -R ytm`) | No `/opt/YTM`, no `/usr/bin/ytm`; `~/.config/ytm` stays | |
 | 14 | Log out or shut down while YTM is running | No "application is not responding" prompt; session ends normally | |
+| 15 | Tray → Check for updates… (or Settings → Updates → Check now) | Settings opens and says "You are up to date" (or offers a newer version); no error line | |
+| 16 | Play a track and look at the task manager / dock entry | A progress bar fills along the entry while the track plays (Plasma, Dash to Dock; N-A on plain GNOME Shell) | |
+| 17 | Settings → "Run natively on Wayland (experimental)", Save, quit, start again (Wayland sessions only) | Starts without the `[display] … X11` relaunch; shortcuts still fire (GNOME shows a permission dialog once); the mini player keeps its position after a restart | |
+| 18 | Settings → Keyboard Shortcuts: record Ctrl+Alt+Right | The display shows `Ctrl+Alt+Right`; after Save the shortcut works and YTM starts normally next time | |
 
 ## 4. Logs
 
 If anything failed, run YTM from a terminal and attach the output:
 
 ```bash
-ytm 2>&1 | tee ~/ytm-report.log        # AppImage: ./YTM-1.2.0-x86_64.AppImage 2>&1 | tee ~/ytm-report.log
+ytm 2>&1 | tee ~/ytm-report.log        # AppImage: ./YTM-1.3.0-x86_64.AppImage 2>&1 | tee ~/ytm-report.log
 ```
 
 The line starting with `[display]` and any line containing `sandbox` are the most useful.

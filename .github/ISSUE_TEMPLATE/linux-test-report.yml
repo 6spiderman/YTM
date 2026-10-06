@@ -60,6 +60,10 @@ body:
         - label: "12 Upgrade keeps settings and sign-in"
         - label: "13 Uninstall leaves no files except ~/.config/ytm"
         - label: "14 Clean logout / shutdown"
+        - label: "15 Check for updates reports up to date (or a newer version)"
+        - label: "16 Progress bar on the task manager / dock entry while playing"
+        - label: "17 Native Wayland setting: starts natively, shortcuts fire, mini player position kept"
+        - label: "18 Recording Ctrl+Alt+Right stores Ctrl+Alt+Right and works"
   - type: textarea
     id: failures
     attributes:
