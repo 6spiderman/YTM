@@ -29,7 +29,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 | Distro / format | Install | Smoke (headless) | Desktop checks (tray, notifications, media keys, autostart) |
 |---|---|---|---|
 | Kubuntu 26.04 deb | **USER** (sudo) | Done on `linux-unpacked`; CI on the runner | **USER** |
-| Kubuntu 26.04 AppImage | Done (runs, static runtime) | Done | **USER**: flag-less start from a terminal, autostart entry points at the AppImage, `--no-sandbox` refusal window |
+| Kubuntu 26.04 AppImage | Done (runs, static runtime) | Done | Done by script: flag-less start relaunches in X11 mode, `--no-sandbox` start shows the refusal window and waits. **USER**: autostart entry points at the AppImage (needs a login), visual check of the window |
 | Ubuntu 24.04 (CI runner) deb | CI | CI, userns restricted and unrestricted | n/a |
 | Debian 12 / 13 deb | CI container | CI container | TESTERS |
 | Fedora rpm | CI container | CI container | TESTERS |
