@@ -29,8 +29,9 @@ export function startedWithoutSandbox(argv: ReadonlyArray<string>, env: NodeJS.P
 
 /**
  * The project never ships --no-sandbox, but electron-builder's AppImage launcher appends it when
- * user namespaces are unavailable. Refuse to continue in that case: show why and exit with 1.
- * Returns true when the app is exiting.
+ * user namespaces are unavailable. Refuse to continue in that case: explain on stderr at once,
+ * show the dialog once the app is ready (before that it is a silent no-op on Linux) and exit with 1.
+ * Returns true when the app is going to exit; the caller must not quit or open windows.
  */
 export function refuseUnsandboxedStart(
   argv: ReadonlyArray<string> = process.argv,
@@ -38,11 +39,13 @@ export function refuseUnsandboxedStart(
 ): boolean {
   if (!startedWithoutSandbox(argv, env)) return false;
   console.error('[sandbox] ' + NO_SANDBOX_MESSAGE);
-  try {
-    dialog.showErrorBox('YTM cannot start without the sandbox', NO_SANDBOX_MESSAGE);
-  } catch {
-    // headless or no display: the console message is enough
-  }
-  app.exit(1);
+  app.whenReady().then(() => {
+    try {
+      dialog.showErrorBox('YTM cannot start without the sandbox', NO_SANDBOX_MESSAGE);
+    } catch {
+      // headless or no display: the console message is enough
+    }
+    app.exit(1);
+  });
   return true;
 }

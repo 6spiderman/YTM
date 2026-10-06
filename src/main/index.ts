@@ -17,7 +17,7 @@ const relaunching = process.platform === 'linux' && (relaunchInX11IfNeeded() || 
 const gotLock = !relaunching && app.requestSingleInstanceLock();
 
 if (!gotLock) {
-  app.quit();
+  if (!relaunching) app.quit();
 } else {
   let windowManager: WindowManager;
   let trayManager: TrayManager;
