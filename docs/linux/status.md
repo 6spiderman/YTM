@@ -8,7 +8,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 
 - Formats: deb, rpm, pacman, AppImage; x64 only; no Flatpak/snap (possible follow-up).
 - Release 1.2.0 replaces the unpublished v1.1.0 draft.
-- **Sandbox:** electron-builder's AppImage launcher appends `--no-sandbox` when unprivileged user namespaces are unavailable (Ubuntu 24.04+ with `kernel.apparmor_restrict_unprivileged_userns=1`), and electron-builder 26.16.1 has no hook to replace that launcher. Because the project never runs unsandboxed, the app refuses such a start with an explanatory dialog and exit code 1 (`refuseUnsandboxedStart` in `lifecycle.ts`); `YTM_ALLOW_NO_SANDBOX=1` overrides it. **Owner decision pending:** keep the refusal (default) or let the AppImage run unsandboxed there like most Electron AppImages do. Either way the `.deb` is the documented route on Ubuntu.
+- **Sandbox:** electron-builder's AppImage launcher appends `--no-sandbox` when unprivileged user namespaces are unavailable (Ubuntu 24.04+ with `kernel.apparmor_restrict_unprivileged_userns=1`), and electron-builder 26.16.1 has no hook to replace that launcher. Because the project never runs unsandboxed, the app refuses such a start with an explanatory window and exit code 1 (`refuseUnsandboxedStart` in `lifecycle.ts`); `YTM_ALLOW_NO_SANDBOX=1` overrides it. **Owner decision pending:** keep the refusal (default) or let the AppImage run unsandboxed there like most Electron AppImages do. Either way the `.deb` is the documented route on Ubuntu.
 - Display mode: `.desktop` and autostart entries keep `--ozone-platform=x11`; a start without the flag inside a Wayland session that has XWayland relaunches itself in X11 mode (spike S14), so AppImage-from-terminal behaves the same.
 
 ## Phases
@@ -29,7 +29,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 | Distro / format | Install | Smoke (headless) | Desktop checks (tray, notifications, media keys, autostart) |
 |---|---|---|---|
 | Kubuntu 26.04 deb | **USER** (sudo) | Done on `linux-unpacked`; CI on the runner | **USER** |
-| Kubuntu 26.04 AppImage | Done (runs, static runtime) | Done | **USER**: flag-less start from a terminal, autostart entry points at the AppImage, `--no-sandbox` refusal dialog |
+| Kubuntu 26.04 AppImage | Done (runs, static runtime) | Done | **USER**: flag-less start from a terminal, autostart entry points at the AppImage, `--no-sandbox` refusal window |
 | Ubuntu 24.04 (CI runner) deb | CI | CI, userns restricted and unrestricted | n/a |
 | Debian 12 / 13 deb | CI container | CI container | TESTERS |
 | Fedora rpm | CI container | CI container | TESTERS |
