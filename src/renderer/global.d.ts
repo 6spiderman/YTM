@@ -1,4 +1,4 @@
-import { PlayerState, Settings } from '../types';
+import { AppEnvironment, PlayerState, Settings, UpdateState } from '../types';
 
 declare global {
   interface Window {
@@ -29,6 +29,13 @@ declare global {
       checkConflict: (shortcut: string, excludeAction: string) => Promise<string | null>;
       previewNotification: () => void;
       closeSettings: () => void;
+      getEnvironment: () => Promise<AppEnvironment>;
+      checkForUpdates: () => Promise<UpdateState>;
+      downloadUpdate: () => Promise<void>;
+      installUpdate: () => Promise<void>;
+      dismissUpdate: (version: string) => Promise<void>;
+      openReleasePage: () => void;
+      onUpdateState: (callback: (state: UpdateState) => void) => void;
     };
   }
 }

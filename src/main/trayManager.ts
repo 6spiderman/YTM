@@ -3,18 +3,34 @@ import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { WindowManager } from './windowManager';
 import { PlayerBridge } from './playerBridge';
-import { PlayerState } from '../types';
+import { PlayerState, UpdateState } from '../types';
+import { UpdateManager } from './updateManager';
 import { createLinuxTrayIcon } from './platform/linux/windowAssets';
 
 export class TrayManager {
   private tray: Tray | null = null;
   private nowPlaying = 'Not playing';
 
+  private lastMenuPercent = -1;
+
   constructor(
     private settings: SettingsManager,
     private windowManager: WindowManager,
-    private playerBridge: PlayerBridge
-  ) {}
+    private playerBridge: PlayerBridge,
+    private updateManager?: UpdateManager
+  ) {
+    // Rebuild the menu when the update state changes; while downloading only every 10 %.
+    updateManager?.on('state-changed', (state: UpdateState) => {
+      if (state.kind === 'downloading') {
+        const step = Math.floor(state.percent / 10);
+        if (step === this.lastMenuPercent) return;
+        this.lastMenuPercent = step;
+      } else {
+        this.lastMenuPercent = -1;
+      }
+      this.buildMenu();
+    });
+  }
 
   show(): void {
     if (this.tray) return;
@@ -56,10 +72,32 @@ export class TrayManager {
       { label: 'Full Player', click: () => this.windowManager.showFullPlayer() },
       { label: 'Mini Player', click: () => this.windowManager.showMiniPlayer() },
       { type: 'separator' },
+      ...this.updateItems(),
       { label: 'Settings', click: () => this.windowManager.openSettings() },
       { label: 'Quit', click: () => { this.windowManager.setQuitting(true); app.quit(); } },
     ]);
 
     this.tray.setContextMenu(menu);
+  }
+
+  /** The update entry for the current state; none in development builds. */
+  private updateItems(): Electron.MenuItemConstructorOptions[] {
+    const um = this.updateManager;
+    if (!um) return [];
+    const state = um.getState();
+    switch (state.kind) {
+      case 'unsupported':
+        return [];
+      case 'checking':
+        return [{ label: 'Checking for updates…', enabled: false }];
+      case 'available':
+        return [{ label: `Update to ${state.version} available – install…`, click: () => void um.download() }];
+      case 'downloading':
+        return [{ label: `Downloading update… ${state.percent}%`, enabled: false }];
+      case 'downloaded':
+        return [{ label: `Restart to update to ${state.version}`, click: () => um.installAndRestart() }];
+      default:
+        return [{ label: 'Check for updates…', click: () => { void um.check(true); this.windowManager.openSettings(); } }];
+    }
   }
 }

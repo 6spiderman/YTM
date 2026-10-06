@@ -1,4 +1,39 @@
-# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.1 published)
+# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.1 published; 1.3.0 in progress)
+
+## 1.3.0: update notification + auto-update, taskbar progress, arrow-key shortcut fix, opt-in native Wayland
+
+Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/1.3.0`.
+
+Owner decisions: the repository becomes public (needed by the unauthenticated GitHub update feed); updates ask before downloading and install on restart; native Wayland is an opt-in setting, XWayland stays the default.
+
+| Phase | State |
+|---|---|
+| 0 Dependency | Done: `electron-updater` 6.8.9 (pure JS) under the freshness rule; `js-yaml` moved to 4.3.2 to clear a High advisory (`dependency-log.md`) |
+| 1 Shortcut fix | Done: `src/shared/accelerator.ts` (shared by main and renderer), capture refuses unsupported keys, stored values are repaired on read, registration never throws and reports failures |
+| 2 Settings | Done: `taskbarProgress`, `nativeWayland`, `updates`; Updates section, banner, environment IPC |
+| 3 Updates | Done: `src/main/updateManager.ts`, tray entries, one notification per version; feed configured in code (`electron-builder.yml` stays frozen); developer feed `YTM_UPDATE_FEED` |
+| 4 Taskbar progress | Done: proxy window on Windows (paused mode), player window on Linux via LauncherEntry |
+| 5 Native Wayland | Done: setting + relaunch from the x11 launcher, portal denials recorded, always-on-top disabled there |
+| 6 CI / snapshot / docs | CI uploads `latest*.yml` and blockmaps; Windows asar snapshot refreshed (S24: +21 expected lines, nothing removed). Docs updated |
+| 7 Release | Procedure below; **USER:** make the repo public, Windows gates W-A/W-B, GNOME tester, merge, publish |
+
+Spikes S20–S24: see `spikes.md`. Unit tests: 203 (`npx jest`).
+
+### Release procedure for 1.3.0 and later (updater-aware)
+
+1. After the merge: tag `v1.3.0`; take `windows-installer` and `linux-packages` from the green CI run.
+2. Upload with the names the updater expects: `YTM-Setup-1.3.0.exe` (rename from `YTM Setup 1.3.0.exe`; it must equal `url:` in `latest.yml`; the sha512 is unchanged by renaming), `YTM-Setup-1.3.0.exe.blockmap`, `latest.yml`, `ytm_1.3.0_amd64.deb`, `ytm-1.3.0.x86_64.rpm`, `ytm-1.3.0-1-x86_64.pkg.tar.zst`, `YTM-1.3.0-x86_64.AppImage`, `YTM-1.3.0-x86_64.AppImage.blockmap`, `latest-linux.yml`, `SHA512SUMS`.
+3. Before publishing: every `url:` in `latest.yml` and `latest-linux.yml` must match an uploaded asset name exactly.
+4. Publish (not draft, not prerelease) with an explicit `tag_name`; drafts are invisible to the updater.
+5. Afterwards "Check for updates" in the published build must say "up to date".
+
+### Open USER items for 1.3.0
+
+1. Make the repository public (before spike S20 can pass).
+2. Windows gate W-A on a fresh 1.3.0 install: taskbar progress (and paused mode), arrow-key shortcut capture, Settings → Updates. Gate W-B: 1.2.1 → 1.3.0 through the published release (notification, tray entry, download, UAC prompt, relaunch).
+3. A GNOME tester for the Wayland shortcut consent dialog; one keypress on Plasma for S23.
+4. Merge the PR; publish per the procedure above.
+
 
 ## 1.2.1: fixes from the first round of Linux testing
 

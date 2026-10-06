@@ -82,3 +82,37 @@ export function relaunchInX11IfNeeded(
   app.exit(0);
   return true;
 }
+
+export const WAYLAND_SWITCH = '--ozone-platform=wayland';
+
+/**
+ * The opposite direction: the desktop entry and autostart always pass `--ozone-platform=x11`; when
+ * the user enabled native Wayland in Settings and we are inside a Wayland session, restart with the
+ * Wayland switch instead. Never fires when the Wayland switch is already present (no loop).
+ */
+export function shouldRelaunchInWayland(argv: ReadonlyArray<string>, env: NodeJS.ProcessEnv, settingOn: boolean): boolean {
+  if (!settingOn) return false;
+  if (argv.includes(WAYLAND_SWITCH)) return false;
+  if (!argv.includes(X11_SWITCH)) return false;
+  return env.XDG_SESSION_TYPE === 'wayland' || !!env.WAYLAND_DISPLAY;
+}
+
+export function relaunchInWaylandIfNeeded(
+  settingOn: boolean,
+  argv: ReadonlyArray<string> = process.argv,
+  env: NodeJS.ProcessEnv = process.env,
+  launch: LaunchFn = defaultLaunch
+): boolean {
+  if (!shouldRelaunchInWayland(argv, env, settingOn)) return false;
+  const file = launcherPath(env, argv[0]);
+  const args = [...argv.slice(1).filter((a) => a !== X11_SWITCH), WAYLAND_SWITCH];
+  console.log(`[display] native Wayland enabled in Settings: relaunching ${file} in Wayland mode`);
+  try {
+    launch(file, args);
+  } catch (err) {
+    console.warn('[display] Wayland relaunch failed, staying on XWayland', err);
+    return false;
+  }
+  app.exit(0);
+  return true;
+}

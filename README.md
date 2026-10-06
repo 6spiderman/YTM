@@ -28,14 +28,15 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 
 | Feature | Details |
 |---------|---------|
-| 🎹 **Global shortcuts** | Control playback from anywhere - even when the app is hidden |
+| 🎹 **Global shortcuts** | Control playback from anywhere - even when the app is hidden (on native Wayland through the desktop's shortcut portal) |
 | 🗂️ **System tray** | Lives quietly in your tray, shows now-playing in the tooltip and context menu |
 | 🪟 **Mini player** | Compact 360x130 overlay with progress bar, volume slider, shuffle, and repeat |
 | 🔔 **Track notifications** | Notification on every track change, with album art and Previous / Play-Pause / Next buttons (Windows toast, freedesktop notification with action buttons on Linux) |
-| 🖱️ **Taskbar and media controls** | Windows: hover the taskbar icon to get Previous / Play-Pause / Next buttons without opening the window. Linux: the same controls through MPRIS (media keys, the KDE or GNOME media widget, headset buttons) |
+| 🖱️ **Taskbar and media controls** | Windows: hover the taskbar icon to get Previous / Play-Pause / Next buttons without opening the window. Linux: the same controls through MPRIS (media keys, the KDE or GNOME media widget, headset buttons). The taskbar button or dock entry shows the track's progress |
 | ⚙️ **Settings UI** | All preferences in one place - no config files to edit |
 | 🔒 **Session persistence** | Sign in once, stay signed in forever |
 | 🚀 **Start with Windows / at login** | Optional auto-start on login (Windows login item, XDG autostart on Linux) |
+| 🔄 **Updates** | Checks GitHub for new releases, tells you, and installs on your say-so (installer, AppImage, deb, rpm and pacman) |
 
 ---
 
@@ -44,7 +45,7 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 ### Windows - installer (recommended)
 
 1. Go to the [**Releases**](https://github.com/6spiderman/ytm/releases/latest) page
-2. Download **`YTM Setup 1.2.1.exe`** (GitHub may display the name as `YTM.Setup.1.2.1.exe`)
+2. Download **`YTM-Setup-1.3.0.exe`**
 3. Run the installer - choose your install directory
 4. A desktop shortcut and Start Menu entry will be created automatically
 5. Launch **YTM** and sign in to your Google account
@@ -57,19 +58,19 @@ Pick the package for your distribution from the [**Releases**](https://github.co
 
 | Distribution family | Package | Status |
 |---|---|---|
-| Kubuntu 26.04 | `ytm_1.2.1_amd64.deb` | Maintainer-tested |
-| Ubuntu 24.04+, Debian 12/13, Linux Mint, Pop!_OS, Zorin | `ytm_1.2.1_amd64.deb` | CI-tested (Debian 12, 13, Ubuntu 24.04); desktop checks by community testers |
-| Fedora, RHEL / Rocky / Alma | `ytm-1.2.1.x86_64.rpm` | CI-tested (Fedora); desktop checks by community testers |
-| openSUSE | `ytm-1.2.1.x86_64.rpm` | Expected to work (rich dependencies); not yet tested |
-| Arch, Manjaro, EndeavourOS, CachyOS | `ytm-1.2.1-1-x86_64.pkg.tar.zst` | CI-tested (Arch); desktop checks by community testers |
-| Everything else | `YTM-1.2.1-x86_64.AppImage` | Needs unprivileged user namespaces (see below) |
+| Kubuntu 26.04 | `ytm_1.3.0_amd64.deb` | Maintainer-tested |
+| Ubuntu 24.04+, Debian 12/13, Linux Mint, Pop!_OS, Zorin | `ytm_1.3.0_amd64.deb` | CI-tested (Debian 12, 13, Ubuntu 24.04); desktop checks by community testers |
+| Fedora, RHEL / Rocky / Alma | `ytm-1.3.0.x86_64.rpm` | CI-tested (Fedora); desktop checks by community testers |
+| openSUSE | `ytm-1.3.0.x86_64.rpm` | Expected to work (rich dependencies); not yet tested |
+| Arch, Manjaro, EndeavourOS, CachyOS | `ytm-1.3.0-1-x86_64.pkg.tar.zst` | CI-tested (Arch); desktop checks by community testers |
+| Everything else | `YTM-1.3.0-x86_64.AppImage` | Needs unprivileged user namespaces (see below) |
 
 Want to help? Run [`docs/linux/tester-checklist.md`](docs/linux/tester-checklist.md) on your distribution and open a *Linux test report* issue.
 
 #### Debian / Ubuntu family (`.deb`)
 
 ```bash
-sudo apt install ./ytm_1.2.1_amd64.deb     # also pulls in the required libraries
+sudo apt install ./ytm_1.3.0_amd64.deb     # also pulls in the required libraries
 ```
 
 Upgrade by installing the newer `.deb` the same way. Remove with `sudo apt remove ytm`. The package installs an AppArmor profile so the Chromium sandbox keeps working on Ubuntu 24.04 and newer.
@@ -77,8 +78,8 @@ Upgrade by installing the newer `.deb` the same way. Remove with `sudo apt remov
 #### Fedora / RHEL / openSUSE (`.rpm`)
 
 ```bash
-sudo dnf install ./ytm-1.2.1.x86_64.rpm                          # Fedora, RHEL family
-sudo zypper install --allow-unsigned-rpm ./ytm-1.2.1.x86_64.rpm  # openSUSE
+sudo dnf install ./ytm-1.3.0.x86_64.rpm                          # Fedora, RHEL family
+sudo zypper install --allow-unsigned-rpm ./ytm-1.3.0.x86_64.rpm  # openSUSE
 ```
 
 Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `sudo zypper remove ytm`).
@@ -86,7 +87,7 @@ Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `s
 #### Arch family (`.pkg.tar.zst`)
 
 ```bash
-sudo pacman -U ytm-1.2.1-1-x86_64.pkg.tar.zst
+sudo pacman -U ytm-1.3.0-1-x86_64.pkg.tar.zst
 ```
 
 Upgrade with the same command on the newer file. Remove with `sudo pacman -R ytm`.
@@ -94,13 +95,13 @@ Upgrade with the same command on the newer file. Remove with `sudo pacman -R ytm
 #### AppImage
 
 ```bash
-chmod +x YTM-1.2.1-x86_64.AppImage
-./YTM-1.2.1-x86_64.AppImage
+chmod +x YTM-1.3.0-x86_64.AppImage
+./YTM-1.3.0-x86_64.AppImage
 ```
 
 No installation and no root. Upgrade by replacing the file (if you enabled *Start at login*, turn it off and on again so the entry points at the new file). The AppImage uses a static runtime, so it does not need `libfuse2`.
 
-The AppImage cannot carry a privileged sandbox helper, so it needs **unprivileged user namespaces**. That is the default on Fedora, Arch, Debian and Mint. On **Ubuntu 24.04 and newer** (including Kubuntu) the kernel setting `kernel.apparmor_restrict_unprivileged_userns=1` blocks it; YTM then stops with a message instead of running YouTube Music without the Chromium sandbox. Use the `.deb` there. If you accept running unsandboxed, start it with `YTM_ALLOW_NO_SANDBOX=1 ./YTM-1.2.1-x86_64.AppImage`.
+The AppImage cannot carry a privileged sandbox helper, so it needs **unprivileged user namespaces**. That is the default on Fedora, Arch, Debian and Mint. On **Ubuntu 24.04 and newer** (including Kubuntu) the kernel setting `kernel.apparmor_restrict_unprivileged_userns=1` blocks it; YTM then stops with a message instead of running YouTube Music without the Chromium sandbox. Use the `.deb` there. If you accept running unsandboxed, start it with `YTM_ALLOW_NO_SANDBOX=1 ./YTM-1.3.0-x86_64.AppImage`.
 
 #### Where your data lives
 
@@ -108,11 +109,12 @@ Settings and the signed-in session are in `~/.config/ytm` and survive upgrades a
 
 #### Linux notes
 
-- **Display mode:** menu launches run through XWayland (`--ozone-platform=x11`) so the mini player's always-on-top and remembered position work. A start without that flag inside a Wayland session (AppImage from a terminal, `/opt/YTM/ytm`) relaunches itself in X11 mode and prints one `[display]` line (with the AppImage, the first launcher process stays idle in the background until you quit). Native Wayland is possible with `--ozone-platform=wayland` but always-on-top and window positions are not available there.
+- **Display mode:** menu launches run through XWayland (`--ozone-platform=x11`) so the mini player's always-on-top and remembered position work. A start without that flag inside a Wayland session (AppImage from a terminal, `/opt/YTM/ytm`) relaunches itself in X11 mode and prints one `[display]` line (with the AppImage, the first launcher process stays idle in the background until you quit).
+- **Native Wayland (experimental):** Settings → General → *Run natively on Wayland*. From the next start YTM runs as a Wayland client: global shortcuts go through the desktop's GlobalShortcuts portal (GNOME 48+ shows a permission dialog once and lists them under Settings → Keyboard; KDE binds them silently and shows them in System Settings → Shortcuts; plain wlroots compositors such as Sway have no portal, so shortcuts do not work there). Always-on-top and remembered window positions are not available on native Wayland; the mini player then behaves like a normal window.
 - **Tray icon:** uses the StatusNotifier protocol. KDE, XFCE, Cinnamon, MATE and LXQt show it out of the box; GNOME needs the *AppIndicator and KStatusNotifierItem Support* extension.
 - **Notification buttons** talk to `org.freedesktop.Notifications` through `busctl` (systemd) or, where that is absent, `gdbus` (GLib, package `libglib2.0-bin` / `glib2`). Servers without action support get a plain notification.
 - **Media controls:** the standard MPRIS interface that Electron provides; media keys, headset buttons, the KDE media widget and GNOME's quick settings all work.
-- **Global shortcuts** use X11 key grabs. If one does not fire, bind the same action in your desktop's shortcut settings to the command `ytm ytm://action/playPause` (also `nextTrack`, `previousTrack`, `volumeUp`, `volumeDown`, `likeTrack`, `dislikeTrack`; with the AppImage use `/path/to/YTM-1.2.1-x86_64.AppImage ytm://action/playPause`).
+- **Global shortcuts** use X11 key grabs in the default mode (and the portal on native Wayland). If one does not fire, bind the same action in your desktop's shortcut settings to the command `ytm ytm://action/playPause` (also `nextTrack`, `previousTrack`, `volumeUp`, `volumeDown`, `likeTrack`, `dislikeTrack`; with the AppImage use `/path/to/YTM-1.3.0-x86_64.AppImage ytm://action/playPause`).
 - **Sign-in storage:** the session cookie key is kept in KWallet (KDE) or GNOME Keyring / libsecret. Without a keyring Chromium falls back to an obfuscated file, so a keyring is recommended.
 
 ### Build from source
@@ -153,6 +155,8 @@ Open **Settings** (⚙ in the title bar or tray menu) and set whichever ones you
 
 > Shortcuts are global - they work even when YTM is minimised or in the background.
 
+Arrow keys are recorded as `Right`, `Left`, `Up` and `Down` (the names Electron understands); shortcuts saved by versions before 1.3.0 are repaired automatically on the next start. A shortcut that another program already owns is marked in red in the Settings list.
+
 ---
 
 ## ⚙️ Settings
@@ -168,6 +172,16 @@ Access settings from the **⚙ gear button** in the title bar, or right-click th
 | Minimise to tray | Closing the window hides the app to tray instead of quitting |
 | Mini-player always on top | Keep the mini player floating above all other windows |
 | Volume step | How much each volume shortcut adjusts the level (default: 5%) |
+| Show track progress on the taskbar | Fill the taskbar button (Windows) or dock entry (Linux) with the track position |
+| Run natively on Wayland (experimental) | Linux only; see the Linux notes above. Takes effect at the next start |
+
+### Updates
+
+| Setting | Description |
+|---------|-------------|
+| Check for updates automatically | Look for a new release 30 seconds after start and every 6 hours (default: on) |
+| Check now | Ask GitHub right away; the result shows in the status line |
+| Install now / Restart now | Download the new version, then restart to install it |
 
 ### Notifications
 
@@ -194,6 +208,18 @@ Get Lucky
 
 ---
 
+## 🔄 Updates
+
+YTM checks the [GitHub releases](https://github.com/6spiderman/ytm/releases) for a newer version 30 seconds after it starts and then every 6 hours (Settings → Updates to turn that off or to check manually). When one exists you get a notification, an entry in the tray menu and a banner in Settings. Nothing is downloaded until you choose **Install now**, and the new version is installed when you choose **Restart now**; **Later** keeps the current version until a newer release appears.
+
+| Package | What happens on install |
+|---|---|
+| Windows installer | The new installer runs; Windows may ask for confirmation |
+| AppImage | The `.AppImage` file is replaced in place and restarted |
+| deb, rpm, pacman | The package is installed with your package manager; your desktop asks for your password |
+
+You can always download a release by hand from the release page; the app shows which version you run under Settings → Updates.
+
 ## 🪟 Mini Player
 
 Click the **▶ Mini** button in the title bar (or press your Toggle Mini Player shortcut) to switch to the compact 360x130 overlay.
@@ -216,6 +242,8 @@ It remembers its screen position between sessions.
 Hovering over the YTM taskbar icon shows **Previous / Play-Pause / Next** media control buttons directly in the Windows thumbnail toolbar. No window preview is shown - just the buttons.
 
 Clicking the taskbar icon minimizes and restores the window the same way any Windows app does. Both full player and mini player modes work the same way.
+
+While a track plays, the taskbar button fills up with the track's progress (shown in the paused style while paused). On Linux the same progress appears on docks that support the LauncherEntry interface, such as the KDE Plasma task manager and Dash to Dock; it can be turned off in Settings.
 
 ---
 
@@ -247,7 +275,7 @@ npm run dev
 npm run build
 ```
 
-This produces `dist-installer/YTM Setup 1.2.1.exe` (Windows only).
+This produces `dist-installer/YTM Setup 1.3.0.exe` (Windows only).
 
 > **Tip:** You need `assets/icons/icon.ico` and `assets/icons/tray-icon.ico` present before building. They are included in the repo.
 
@@ -261,10 +289,10 @@ npm ci
 npm run dev:linux                 # development, runs through XWayland
 npm run build:linux               # dist-installer-linux/: .deb, .rpm, .pkg.tar.zst and .AppImage
 npm run build:linux:deb           # only the .deb (faster)
-scripts/check-deb.sh      dist-installer-linux/ytm_1.2.1_amd64.deb
-scripts/check-rpm.sh      dist-installer-linux/ytm-1.2.1.x86_64.rpm
-scripts/check-pacman.sh   dist-installer-linux/ytm-1.2.1-1-x86_64.pkg.tar.zst
-scripts/check-appimage.sh dist-installer-linux/YTM-1.2.1-x86_64.AppImage
+scripts/check-deb.sh      dist-installer-linux/ytm_1.3.0_amd64.deb
+scripts/check-rpm.sh      dist-installer-linux/ytm-1.3.0.x86_64.rpm
+scripts/check-pacman.sh   dist-installer-linux/ytm-1.3.0-1-x86_64.pkg.tar.zst
+scripts/check-appimage.sh dist-installer-linux/YTM-1.3.0-x86_64.AppImage
 ```
 
 `rpm` provides `rpmbuild` for the rpm target and `libarchive-tools` provides `bsdtar` for the Arch package; both are built on any distribution. `scripts/smoke-linux.sh <path-to-ytm-or-AppImage>` starts the app against a throwaway profile and checks the sandbox, the window and a clean SIGTERM exit (use `xvfb-run -a` on a headless machine). `scripts/ci/container-test.sh` is what CI runs inside Debian, Fedora, Arch and openSUSE containers.
@@ -273,12 +301,13 @@ scripts/check-appimage.sh dist-installer-linux/YTM-1.2.1-x86_64.AppImage
 
 ```
 src/
-  main/           # Electron main process
+  main/           # Electron main process (updateManager.ts: update checks and installs)
   preload/        # Context bridge scripts (one per window)
   renderer/       # UI for each window (HTML + TypeScript)
     main-window/  # Full player title bar
     mini-player/  # Compact 360x130 overlay
     settings/     # Settings window
+  shared/         # Code used by main and renderers (accelerator.ts: shortcut key handling)
   types.ts        # Shared TypeScript interfaces
 scripts/
   bundle-renderer.js   # esbuild bundler for renderer scripts
@@ -302,11 +331,11 @@ assets/
 
 - **DOM selectors may break** after a YouTube Music UI update. If playback controls stop working, open an issue - it usually just needs a selector update in `src/main/playerBridge.ts`.
 - **SmartScreen warning on install** - the app is currently unsigned. This is expected for self-built releases.
-- **Linux: native Wayland** - always-on-top, window positions and global shortcuts are not available through Wayland in the same way; use the default XWayland mode.
+- **Linux: native Wayland** (opt-in setting) - always-on-top and remembered window positions are not available on Wayland, and shortcuts need a desktop with the GlobalShortcuts portal (GNOME 48+, KDE Plasma, Hyprland). The default XWayland mode has none of these limits.
 - **Linux: notification sound** - the "Play notification sound" setting only suppresses or allows the sound; which sound plays is controlled by your desktop's notification settings.
 - **Linux: AppImage on Ubuntu 24.04+** - stops at start because the kernel blocks the unprivileged sandbox; install the `.deb` instead (details under Installation).
 - **Linux: GNOME tray** - GNOME Shell shows no tray icons without the AppIndicator extension; the window and media controls still work.
-- **Global shortcut conflicts** - if a shortcut fails to register, another app already owns it. Change it in Settings.
+- **Global shortcut conflicts** - if a shortcut fails to register, another app already owns it; it is marked in red in Settings. Change it there.
 
 ---
 

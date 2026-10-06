@@ -2,8 +2,8 @@ import { BrowserWindow, WebContents, WebContentsView, app, nativeImage } from 'e
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
-import { Settings } from '../types';
-import { waylandPositionOverride } from './platform/linux/displayServer';
+import { PlayerState, Settings, UpdateState } from '../types';
+import { isNativeWayland, waylandPositionOverride } from './platform/linux/displayServer';
 import { applyLinuxWindowIcon, centeredOnWindow } from './platform/linux/windowAssets';
 
 const TITLE_BAR_HEIGHT = 36;
@@ -19,6 +19,7 @@ export class WindowManager {
   private suppressProxyActivation = false;
   /** Linux: the title-bar page's innerWidth/innerHeight, the only exact content size there. */
   private reportedViewport: { width: number; height: number } | null = null;
+  private lastProgress: { value: number; paused: boolean } | null = null;
 
   constructor(
     private settings: SettingsManager,
@@ -115,11 +116,14 @@ export class WindowManager {
     this.playerBridge.on('state-changed', (state) => {
       this.broadcastState(state);
       this.updateThumbarButtons(state.isPlaying);
+      this.applyTaskbarProgress(state);
     });
 
     // Forward progress ticks to mini-player only (avoids per-second tray rebuilds)
     this.playerBridge.on('progress-updated', (currentTime: number, duration: number) => {
       this.miniWindow?.webContents.send('player:progress-updated', currentTime, duration);
+      const last = this.playerBridge.getLastState();
+      if (last) this.applyTaskbarProgress({ ...last, currentTime, duration });
     });
 
     if (process.platform === 'win32') this.createProxyWindow();
@@ -326,7 +330,8 @@ export class WindowManager {
       height: 130,
       resizable: false,
       frame: false,
-      alwaysOnTop: miniPlayerAlwaysOnTop,
+      // Always-on-top does not exist on native Wayland; asking for it only logs a warning.
+      alwaysOnTop: process.platform === 'linux' && isNativeWayland() ? false : miniPlayerAlwaysOnTop,
       skipTaskbar: true,
       backgroundColor: '#1a1a2e',
       webPreferences: {
@@ -405,6 +410,46 @@ export class WindowManager {
   applySettings(newSettings: Settings): void {
     if (this.miniWindow) {
       this.miniWindow.setAlwaysOnTop(newSettings.miniPlayerAlwaysOnTop);
+    }
+    if (!newSettings.taskbarProgress) this.clearTaskbarProgress();
+    else this.applyTaskbarProgress(this.playerBridge.getLastState());
+  }
+
+  /** The window whose taskbar/dock entry represents the app: the proxy on Windows, otherwise the visible player. */
+  private taskbarWindow(): BrowserWindow | null {
+    const win = process.platform === 'win32'
+      ? this.proxyWindow
+      : (this.isMiniMode && this.miniWindow ? this.miniWindow : this.mainWindow);
+    return win && !win.isDestroyed() ? win : null;
+  }
+
+  /** Shows the track position on the taskbar button (Windows) or dock entry (Linux LauncherEntry API). */
+  applyTaskbarProgress(state: PlayerState | null): void {
+    const win = this.taskbarWindow();
+    if (!win) return;
+    const enabled = this.settings.get().taskbarProgress;
+    if (!enabled || !state || !state.currentTrack || !state.duration || state.duration <= 0) {
+      this.clearTaskbarProgress();
+      return;
+    }
+    const value = Math.min(1, Math.max(0, state.currentTime / state.duration));
+    const paused = !state.isPlaying;
+    if (this.lastProgress && Math.abs(this.lastProgress.value - value) < 0.005 && this.lastProgress.paused === paused) return;
+    this.lastProgress = { value, paused };
+    if (paused && process.platform === 'win32') win.setProgressBar(value, { mode: 'paused' });
+    else win.setProgressBar(value);
+  }
+
+  clearTaskbarProgress(): void {
+    const win = this.taskbarWindow();
+    if (win && this.lastProgress) win.setProgressBar(-1);
+    this.lastProgress = null;
+  }
+
+  /** Pushes the updater state to the settings window, if open. */
+  broadcastUpdateState(state: UpdateState): void {
+    if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+      this.settingsWindow.webContents.send('updates:state-changed', state);
     }
   }
 
