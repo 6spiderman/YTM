@@ -19,6 +19,8 @@ Owner decisions: the repository becomes public (needed by the unauthenticated Gi
 
 Spikes S20–S24: see `spikes.md`. Unit tests: 203 (`npx jest`).
 
+Known cosmetic issue for 1.3.1: right after a manual check the Settings status line still shows the previous "Last check" time (the page re-reads `updates.lastCheck` only when settings are reloaded); the check itself and its result are correct.
+
 ### Release procedure for 1.3.0 and later (updater-aware)
 
 1. After the merge: tag `v1.3.0`; take `windows-installer` and `linux-packages` from the green CI run.
