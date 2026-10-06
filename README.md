@@ -108,7 +108,7 @@ Settings and the signed-in session are in `~/.config/ytm` and survive upgrades a
 
 #### Linux notes
 
-- **Display mode:** menu launches run through XWayland (`--ozone-platform=x11`) so the mini player's always-on-top and remembered position work. A start without that flag inside a Wayland session (AppImage from a terminal, `/opt/YTM/ytm`) relaunches itself in X11 mode and prints one `[display]` line. Native Wayland is possible with `--ozone-platform=wayland` but always-on-top and window positions are not available there.
+- **Display mode:** menu launches run through XWayland (`--ozone-platform=x11`) so the mini player's always-on-top and remembered position work. A start without that flag inside a Wayland session (AppImage from a terminal, `/opt/YTM/ytm`) relaunches itself in X11 mode and prints one `[display]` line (with the AppImage, the first launcher process stays idle in the background until you quit). Native Wayland is possible with `--ozone-platform=wayland` but always-on-top and window positions are not available there.
 - **Tray icon:** uses the StatusNotifier protocol. KDE, XFCE, Cinnamon, MATE and LXQt show it out of the box; GNOME needs the *AppIndicator and KStatusNotifierItem Support* extension.
 - **Notification buttons** talk to `org.freedesktop.Notifications` through `busctl` (systemd) or, where that is absent, `gdbus` (GLib, package `libglib2.0-bin` / `glib2`). Servers without action support get a plain notification.
 - **Media controls:** the standard MPRIS interface that Electron provides; media keys, headset buttons, the KDE media widget and GNOME's quick settings all work.
