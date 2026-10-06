@@ -73,7 +73,7 @@ Want to help? Run [`docs/linux/tester-checklist.md`](docs/linux/tester-checklist
 sudo apt install ./ytm_1.3.0_amd64.deb     # also pulls in the required libraries
 ```
 
-Upgrade by installing the newer `.deb` the same way. Remove with `sudo apt remove ytm`. The package installs an AppArmor profile so the Chromium sandbox keeps working on Ubuntu 24.04 and newer.
+Upgrade by installing the newer `.deb` the same way, **after quitting YTM** (tray icon → Quit): a running YTM keeps the old program in memory and the menu entry only focuses it, so the new version appears to do nothing until the old one is closed. From 1.3.0 on the in-app updater handles this for you. Remove with `sudo apt remove ytm`. The package installs an AppArmor profile so the Chromium sandbox keeps working on Ubuntu 24.04 and newer.
 
 #### Fedora / RHEL / openSUSE (`.rpm`)
 
@@ -82,7 +82,7 @@ sudo dnf install ./ytm-1.3.0.x86_64.rpm                          # Fedora, RHEL 
 sudo zypper install --allow-unsigned-rpm ./ytm-1.3.0.x86_64.rpm  # openSUSE
 ```
 
-Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `sudo zypper remove ytm`).
+Upgrade by installing the newer `.rpm` after quitting YTM. Remove with `sudo dnf remove ytm` (or `sudo zypper remove ytm`).
 
 #### Arch family (`.pkg.tar.zst`)
 
@@ -90,7 +90,7 @@ Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `s
 sudo pacman -U ytm-1.3.0-1-x86_64.pkg.tar.zst
 ```
 
-Upgrade with the same command on the newer file. Remove with `sudo pacman -R ytm`.
+Upgrade with the same command on the newer file, after quitting YTM. Remove with `sudo pacman -R ytm`.
 
 #### AppImage
 
