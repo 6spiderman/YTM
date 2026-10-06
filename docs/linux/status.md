@@ -1,4 +1,15 @@
-# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (1.2.0 published)
+# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.0 published; 1.2.1 in progress)
+
+## 1.2.1: fixes from the first round of Linux testing
+
+| Report | Cause | Fix | Verified |
+|---|---|---|---|
+| Maximised window: player controls cut off "under the taskbar" (all desktops and packages) | `BrowserWindow.getContentSize()` on Linux includes the invisible frame insets of a frameless window while it is maximised (32x42 px here), so the YouTube view was laid out larger than the window; after restoring it was too small | The title-bar page reports `innerWidth`/`innerHeight` on resize; the Linux layout uses that (`WindowManager.reportViewport`) | On the panel monitor: window 1920x1026, view 1920x990 (was 1952x1032); restored 1200x764 (was 1168x722) |
+| Settings button "does nothing" on Kubuntu | The settings window had no position, so KWin centred it on the primary monitor while YTM was on the other screen | Linux: centre the settings window on the main window, clamped to its display's work area; cursor display when the main window is hidden (`centeredOnWindow`) | Settings window opened at the main window's centre on the second monitor |
+| Save button always green; no feedback | No change tracking | Save is disabled/grey until the form differs from the loaded or last-saved settings; saving keeps the window open and re-reads stored settings first; Cancel is now Close | Grey → green on change → grey on revert → grey after save, window open, value stored |
+
+All three are in branch `fix/linux-ui-1.2.1`; 152 unit tests, typecheck, lint and the Windows-input guard pass. Release 1.2.1 follows the 1.2.0 procedure (CI, PR, tag, release with CI-built packages).
+
 
 Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/linux-distros` in `~/src/YTM`. The 1.1.0 Kubuntu work and its open items are in `docs/kubuntu/status.md`.
 

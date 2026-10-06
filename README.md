@@ -44,7 +44,7 @@ No browser tabs. No losing your music when you close the wrong window. Just YouT
 ### Windows - installer (recommended)
 
 1. Go to the [**Releases**](https://github.com/6spiderman/ytm/releases/latest) page
-2. Download **`YTM Setup 1.2.0.exe`** (GitHub may display the name as `YTM.Setup.1.2.0.exe`)
+2. Download **`YTM Setup 1.2.1.exe`** (GitHub may display the name as `YTM.Setup.1.2.1.exe`)
 3. Run the installer - choose your install directory
 4. A desktop shortcut and Start Menu entry will be created automatically
 5. Launch **YTM** and sign in to your Google account
@@ -57,19 +57,19 @@ Pick the package for your distribution from the [**Releases**](https://github.co
 
 | Distribution family | Package | Status |
 |---|---|---|
-| Kubuntu 26.04 | `ytm_1.2.0_amd64.deb` | Maintainer-tested |
-| Ubuntu 24.04+, Debian 12/13, Linux Mint, Pop!_OS, Zorin | `ytm_1.2.0_amd64.deb` | CI-tested (Debian 12, 13, Ubuntu 24.04); desktop checks by community testers |
-| Fedora, RHEL / Rocky / Alma | `ytm-1.2.0.x86_64.rpm` | CI-tested (Fedora); desktop checks by community testers |
-| openSUSE | `ytm-1.2.0.x86_64.rpm` | Expected to work (rich dependencies); not yet tested |
-| Arch, Manjaro, EndeavourOS, CachyOS | `ytm-1.2.0-1-x86_64.pkg.tar.zst` | CI-tested (Arch); desktop checks by community testers |
-| Everything else | `YTM-1.2.0-x86_64.AppImage` | Needs unprivileged user namespaces (see below) |
+| Kubuntu 26.04 | `ytm_1.2.1_amd64.deb` | Maintainer-tested |
+| Ubuntu 24.04+, Debian 12/13, Linux Mint, Pop!_OS, Zorin | `ytm_1.2.1_amd64.deb` | CI-tested (Debian 12, 13, Ubuntu 24.04); desktop checks by community testers |
+| Fedora, RHEL / Rocky / Alma | `ytm-1.2.1.x86_64.rpm` | CI-tested (Fedora); desktop checks by community testers |
+| openSUSE | `ytm-1.2.1.x86_64.rpm` | Expected to work (rich dependencies); not yet tested |
+| Arch, Manjaro, EndeavourOS, CachyOS | `ytm-1.2.1-1-x86_64.pkg.tar.zst` | CI-tested (Arch); desktop checks by community testers |
+| Everything else | `YTM-1.2.1-x86_64.AppImage` | Needs unprivileged user namespaces (see below) |
 
 Want to help? Run [`docs/linux/tester-checklist.md`](docs/linux/tester-checklist.md) on your distribution and open a *Linux test report* issue.
 
 #### Debian / Ubuntu family (`.deb`)
 
 ```bash
-sudo apt install ./ytm_1.2.0_amd64.deb     # also pulls in the required libraries
+sudo apt install ./ytm_1.2.1_amd64.deb     # also pulls in the required libraries
 ```
 
 Upgrade by installing the newer `.deb` the same way. Remove with `sudo apt remove ytm`. The package installs an AppArmor profile so the Chromium sandbox keeps working on Ubuntu 24.04 and newer.
@@ -77,8 +77,8 @@ Upgrade by installing the newer `.deb` the same way. Remove with `sudo apt remov
 #### Fedora / RHEL / openSUSE (`.rpm`)
 
 ```bash
-sudo dnf install ./ytm-1.2.0.x86_64.rpm                          # Fedora, RHEL family
-sudo zypper install --allow-unsigned-rpm ./ytm-1.2.0.x86_64.rpm  # openSUSE
+sudo dnf install ./ytm-1.2.1.x86_64.rpm                          # Fedora, RHEL family
+sudo zypper install --allow-unsigned-rpm ./ytm-1.2.1.x86_64.rpm  # openSUSE
 ```
 
 Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `sudo zypper remove ytm`).
@@ -86,7 +86,7 @@ Upgrade by installing the newer `.rpm`. Remove with `sudo dnf remove ytm` (or `s
 #### Arch family (`.pkg.tar.zst`)
 
 ```bash
-sudo pacman -U ytm-1.2.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ytm-1.2.1-1-x86_64.pkg.tar.zst
 ```
 
 Upgrade with the same command on the newer file. Remove with `sudo pacman -R ytm`.
@@ -94,13 +94,13 @@ Upgrade with the same command on the newer file. Remove with `sudo pacman -R ytm
 #### AppImage
 
 ```bash
-chmod +x YTM-1.2.0-x86_64.AppImage
-./YTM-1.2.0-x86_64.AppImage
+chmod +x YTM-1.2.1-x86_64.AppImage
+./YTM-1.2.1-x86_64.AppImage
 ```
 
 No installation and no root. Upgrade by replacing the file (if you enabled *Start at login*, turn it off and on again so the entry points at the new file). The AppImage uses a static runtime, so it does not need `libfuse2`.
 
-The AppImage cannot carry a privileged sandbox helper, so it needs **unprivileged user namespaces**. That is the default on Fedora, Arch, Debian and Mint. On **Ubuntu 24.04 and newer** (including Kubuntu) the kernel setting `kernel.apparmor_restrict_unprivileged_userns=1` blocks it; YTM then stops with a message instead of running YouTube Music without the Chromium sandbox. Use the `.deb` there. If you accept running unsandboxed, start it with `YTM_ALLOW_NO_SANDBOX=1 ./YTM-1.2.0-x86_64.AppImage`.
+The AppImage cannot carry a privileged sandbox helper, so it needs **unprivileged user namespaces**. That is the default on Fedora, Arch, Debian and Mint. On **Ubuntu 24.04 and newer** (including Kubuntu) the kernel setting `kernel.apparmor_restrict_unprivileged_userns=1` blocks it; YTM then stops with a message instead of running YouTube Music without the Chromium sandbox. Use the `.deb` there. If you accept running unsandboxed, start it with `YTM_ALLOW_NO_SANDBOX=1 ./YTM-1.2.1-x86_64.AppImage`.
 
 #### Where your data lives
 
@@ -112,7 +112,7 @@ Settings and the signed-in session are in `~/.config/ytm` and survive upgrades a
 - **Tray icon:** uses the StatusNotifier protocol. KDE, XFCE, Cinnamon, MATE and LXQt show it out of the box; GNOME needs the *AppIndicator and KStatusNotifierItem Support* extension.
 - **Notification buttons** talk to `org.freedesktop.Notifications` through `busctl` (systemd) or, where that is absent, `gdbus` (GLib, package `libglib2.0-bin` / `glib2`). Servers without action support get a plain notification.
 - **Media controls:** the standard MPRIS interface that Electron provides; media keys, headset buttons, the KDE media widget and GNOME's quick settings all work.
-- **Global shortcuts** use X11 key grabs. If one does not fire, bind the same action in your desktop's shortcut settings to the command `ytm ytm://action/playPause` (also `nextTrack`, `previousTrack`, `volumeUp`, `volumeDown`, `likeTrack`, `dislikeTrack`; with the AppImage use `/path/to/YTM-1.2.0-x86_64.AppImage ytm://action/playPause`).
+- **Global shortcuts** use X11 key grabs. If one does not fire, bind the same action in your desktop's shortcut settings to the command `ytm ytm://action/playPause` (also `nextTrack`, `previousTrack`, `volumeUp`, `volumeDown`, `likeTrack`, `dislikeTrack`; with the AppImage use `/path/to/YTM-1.2.1-x86_64.AppImage ytm://action/playPause`).
 - **Sign-in storage:** the session cookie key is kept in KWallet (KDE) or GNOME Keyring / libsecret. Without a keyring Chromium falls back to an obfuscated file, so a keyring is recommended.
 
 ### Build from source
@@ -247,7 +247,7 @@ npm run dev
 npm run build
 ```
 
-This produces `dist-installer/YTM Setup 1.2.0.exe` (Windows only).
+This produces `dist-installer/YTM Setup 1.2.1.exe` (Windows only).
 
 > **Tip:** You need `assets/icons/icon.ico` and `assets/icons/tray-icon.ico` present before building. They are included in the repo.
 
@@ -261,10 +261,10 @@ npm ci
 npm run dev:linux                 # development, runs through XWayland
 npm run build:linux               # dist-installer-linux/: .deb, .rpm, .pkg.tar.zst and .AppImage
 npm run build:linux:deb           # only the .deb (faster)
-scripts/check-deb.sh      dist-installer-linux/ytm_1.2.0_amd64.deb
-scripts/check-rpm.sh      dist-installer-linux/ytm-1.2.0.x86_64.rpm
-scripts/check-pacman.sh   dist-installer-linux/ytm-1.2.0-1-x86_64.pkg.tar.zst
-scripts/check-appimage.sh dist-installer-linux/YTM-1.2.0-x86_64.AppImage
+scripts/check-deb.sh      dist-installer-linux/ytm_1.2.1_amd64.deb
+scripts/check-rpm.sh      dist-installer-linux/ytm-1.2.1.x86_64.rpm
+scripts/check-pacman.sh   dist-installer-linux/ytm-1.2.1-1-x86_64.pkg.tar.zst
+scripts/check-appimage.sh dist-installer-linux/YTM-1.2.1-x86_64.AppImage
 ```
 
 `rpm` provides `rpmbuild` for the rpm target and `libarchive-tools` provides `bsdtar` for the Arch package; both are built on any distribution. `scripts/smoke-linux.sh <path-to-ytm-or-AppImage>` starts the app against a throwaway profile and checks the sandbox, the window and a clean SIGTERM exit (use `xvfb-run -a` on a headless machine). `scripts/ci/container-test.sh` is what CI runs inside Debian, Fedora, Arch and openSUSE containers.

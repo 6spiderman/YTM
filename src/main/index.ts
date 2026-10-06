@@ -104,6 +104,7 @@ if (!gotLock) {
     ipcMain.on('window:open-settings', () => windowManager.openSettings());
     ipcMain.on('window:close-settings', () => windowManager.closeSettings());
     ipcMain.on('window:reload-ytm', () => windowManager.reloadYtmView());
+    ipcMain.on('window:viewport', (event, { width, height }) => windowManager.reportViewport(event.sender, width, height));
 
     // IPC: player actions from renderers
     ipcMain.on('player:action', (_event, { action }) => playerBridge.execute(action));

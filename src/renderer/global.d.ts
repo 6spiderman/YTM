@@ -11,6 +11,7 @@ declare global {
       maximizeWindow: () => void;
       closeWindow: () => void;
       openSettings: () => void;
+      reportViewport: (width: number, height: number) => void;
     };
     miniApi: {
       onStateChanged: (callback: (state: PlayerState) => void) => void;
