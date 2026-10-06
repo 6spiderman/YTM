@@ -1,4 +1,4 @@
-# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (CI green)
+# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (merged, tagged, draft release)
 
 Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/linux-distros` in `~/src/YTM`. The 1.1.0 Kubuntu work and its open items are in `docs/kubuntu/status.md`.
 
@@ -22,7 +22,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 | 4 CI | Green on 453842c: windows, ubuntu (4 packages, static checks, deb smoke with userns restricted and unrestricted, AppImage smoke), audit, and the five container rows |
 | 5 Docs | README, tester checklist, issue form, this file |
 | 6 Version | 1.2.0; Electron 44.4.4 selected 2026-10-06 under the freshness rule (`dependency-log.md`) |
-| 7 Release | **USER** |
+| 7 Release | PR #1 merged to master (a6f8ace) and tagged `v1.2.0` on 2026-10-06. Draft release 404611976 holds the four Linux packages from CI run 37448787332 plus `SHA512SUMS`. **USER:** Windows gates W-A/W-B with the run's `windows-installer` artifact, attach `YTM Setup 1.2.0.exe`, publish |
 
 ## Per-distro matrix
 
