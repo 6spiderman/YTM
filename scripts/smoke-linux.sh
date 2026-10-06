@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Headless-capable smoke test for the packaged Linux app.
-# Usage: scripts/smoke-linux.sh <path-to-ytm-binary> [seconds-to-wait]
+# Headless-capable smoke test for the packaged Linux app (installed binary or AppImage).
+# Usage: scripts/smoke-linux.sh <path-to-ytm-binary-or-AppImage> [seconds-to-wait]
 # Under CI run it as: xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm
+# SMOKE_EXTRA_ARGS (default --ozone-platform=x11) is passed to the app. The flag stays on by default:
+# without it a Wayland desktop with XWayland makes the app relaunch itself, which breaks PID tracking.
 # Checks: process alive, YTM window present, browser process not started with --no-sandbox, at least one
 # renderer running with seccomp (the sandboxed YouTube Music view), clean exit on SIGTERM, no sandbox
 # errors in the log. Local windows (main, mini, settings) intentionally run unsandboxed
@@ -14,7 +16,8 @@ FAIL=0
 pass() { echo "PASS  $1"; }
 fail() { echo "FAIL  $1"; FAIL=1; }
 
-"$BIN" --ozone-platform=x11 --user-data-dir="$UD" >"$UD/app.log" 2>&1 &
+# shellcheck disable=SC2086
+"$BIN" ${SMOKE_EXTRA_ARGS---ozone-platform=x11} --user-data-dir="$UD" >"$UD/app.log" 2>&1 &
 PID=$!
 sleep "$WAIT"
 
