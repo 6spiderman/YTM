@@ -4,6 +4,7 @@ import { WindowManager } from './windowManager';
 import { PlayerBridge } from './playerBridge';
 import { ShortcutAction, ShortcutMap, ShortcutFailure } from '../types';
 import { isValidAccelerator } from '../shared/accelerator';
+import { isNativeWayland } from './platform/linux/displayServer';
 
 /** A modifier plus exactly one key token Electron understands (see src/shared/accelerator.ts). */
 export function validateShortcut(shortcut: string): boolean {
@@ -24,6 +25,7 @@ export function detectConflict(
 
 export class ShortcutManager {
   private failures: ShortcutFailure[] = [];
+  private portalListener = false;
 
   constructor(
     private settings: SettingsManager,
@@ -44,6 +46,7 @@ export class ShortcutManager {
     const { shortcuts, volumeStep } = this.settings.get();
     this.playerBridge.setVolumeStep(volumeStep);
     this.failures = [];
+    this.listenToPortal();
 
     const handlers: Record<ShortcutAction, () => void> = {
       playPause: () => this.playerBridge.execute('playPause'),
@@ -77,6 +80,29 @@ export class ShortcutManager {
       }
     }
     return this.lastFailures;
+  }
+
+  /**
+   * On native Wayland the XDG GlobalShortcuts portal decides asynchronously (GNOME asks the user);
+   * Electron reports the outcome through 'registration-resolved'. Denials are recorded as failures.
+   */
+  private listenToPortal(): void {
+    if (this.portalListener || process.platform !== 'linux' || !isNativeWayland()) return;
+    const gs = globalShortcut as unknown as { on?: (event: string, cb: (...args: unknown[]) => void) => void };
+    if (typeof gs.on !== 'function') return;
+    this.portalListener = true;
+    gs.on('registration-resolved', (...args: unknown[]) => {
+      const detail = args.find((a) => a && typeof a === 'object') as { accelerator?: string; success?: boolean; registered?: boolean } | undefined;
+      const accelerator = detail?.accelerator ?? String(args[0] ?? '');
+      const ok = detail?.success ?? detail?.registered ?? args[1];
+      if (ok === false) {
+        const { shortcuts } = this.settings.get();
+        const action = (Object.keys(shortcuts) as ShortcutAction[]).find((a) => shortcuts[a] === accelerator);
+        if (action) this.fail(action, accelerator, 'denied');
+      } else {
+        console.log(`[ShortcutManager] portal granted ${accelerator}`);
+      }
+    });
   }
 
   private fail(action: ShortcutAction, accelerator: string, reason: ShortcutFailure['reason'], err?: unknown): void {

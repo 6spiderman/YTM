@@ -1,4 +1,5 @@
 import { app, ipcMain } from 'electron';
+import { UpdateManager } from './updateManager';
 import { execSync } from 'child_process';
 import { PlayerState } from '../types';
 import { SettingsManager } from './settingsManager';
@@ -8,12 +9,20 @@ import { ShortcutManager } from './shortcutManager';
 import { NotificationManager } from './notificationManager';
 import { PlayerBridge } from './playerBridge';
 import { installTerminationHandlers, refuseUnsandboxedStart } from './platform/linux/lifecycle';
-import { relaunchInX11IfNeeded } from './platform/linux/displayServer';
+import { isNativeWayland, relaunchInWaylandIfNeeded, relaunchInX11IfNeeded } from './platform/linux/displayServer';
 
-// Linux: a flag-less start inside a Wayland session restarts itself in X11 mode (displayServer.ts),
-// and a start that an AppImage launcher downgraded to --no-sandbox is refused (lifecycle.ts).
-// Both must happen before the single-instance lock so a new instance can take it.
-const relaunching = process.platform === 'linux' && (relaunchInX11IfNeeded() || refuseUnsandboxedStart());
+// Settings are read before `ready` (electron-store only needs the userData path): the Linux
+// start-up decisions below depend on them.
+const settingsManager = new SettingsManager();
+
+// Linux: a flag-less start inside a Wayland session restarts itself in X11 mode; a start with the
+// x11 flag restarts in Wayland mode when the user opted in (displayServer.ts); a start that an
+// AppImage launcher downgraded to --no-sandbox is refused (lifecycle.ts). All of this must happen
+// before the single-instance lock so a new instance can take it.
+const relaunching = process.platform === 'linux'
+  && (relaunchInX11IfNeeded() || relaunchInWaylandIfNeeded(settingsManager.get().nativeWayland) || refuseUnsandboxedStart());
+// Linux: LauncherEntry progress and the Wayland shortcuts portal identify the app by its desktop file.
+if (process.platform === 'linux') app.setDesktopName('ytm.desktop');
 const gotLock = !relaunching && app.requestSingleInstanceLock();
 
 if (!gotLock) {
@@ -24,7 +33,7 @@ if (!gotLock) {
   let shortcutManager: ShortcutManager;
   let notificationManager: NotificationManager;
   let playerBridge: PlayerBridge;
-  let settingsManager: SettingsManager;
+  let updateManager: UpdateManager;
 
   app.on('second-instance', (_event, argv) => {
     const protocolUrl = argv.find((arg: string) => arg.startsWith('ytm://action/'));
@@ -55,12 +64,15 @@ if (!gotLock) {
         // Non-critical - toastXml notifications will still be delivered to Action Center
       }
     }
-    settingsManager = new SettingsManager();
     const settings = settingsManager.get();
 
     playerBridge = new PlayerBridge();
     windowManager = new WindowManager(settingsManager, playerBridge);
-    trayManager = new TrayManager(settingsManager, windowManager, playerBridge);
+    updateManager = new UpdateManager(settingsManager, { onBeforeInstall: () => windowManager.setQuitting(true) });
+    updateManager.on('state-changed', (state) => windowManager.broadcastUpdateState(state));
+    updateManager.on('update-available', (version: string) =>
+      notificationManager.notifyUpdateAvailable(version, () => windowManager.openSettings()));
+    trayManager = new TrayManager(settingsManager, windowManager, playerBridge, updateManager);
     shortcutManager = new ShortcutManager(settingsManager, windowManager, playerBridge);
     notificationManager = new NotificationManager(settingsManager, (action) => playerBridge.execute(action));
 
@@ -81,6 +93,7 @@ if (!gotLock) {
     } catch (err) {
       console.error('[ShortcutManager] registerAll failed', err);
     }
+    updateManager.start();
 
     // IPC: settings
     ipcMain.handle('settings:get', () => settingsManager.get());
@@ -89,7 +102,22 @@ if (!gotLock) {
       settingsManager.save(newSettings);
       shortcutManager.reloadAll();
       windowManager.applySettings(newSettings);
+      updateManager.start();
     });
+    ipcMain.handle('settings:get-environment', () => ({
+      platform: process.platform,
+      nativeWayland: process.platform === 'linux' && isNativeWayland(),
+      version: app.getVersion(),
+      updateState: updateManager.getState(),
+      shortcutFailures: shortcutManager.lastFailures,
+    }));
+
+    // IPC: updates
+    ipcMain.handle('updates:check', () => updateManager.check(true));
+    ipcMain.handle('updates:download', () => updateManager.download());
+    ipcMain.handle('updates:install', () => updateManager.installAndRestart());
+    ipcMain.handle('updates:dismiss', (_event, { version }) => updateManager.dismiss(version));
+    ipcMain.on('updates:open-release-page', () => updateManager.openReleasePage());
 
     // IPC: shortcuts conflict check
     ipcMain.handle('shortcuts:check-conflict', (_event, { shortcut, excludeAction }) => {
@@ -125,6 +153,8 @@ if (!gotLock) {
 
   app.on('before-quit', () => {
     if (process.platform === 'linux') windowManager?.setQuitting(true);
+    updateManager?.dispose();
+    windowManager?.clearTaskbarProgress();
     notificationManager?.dispose();
     shortcutManager?.unregisterAll();
     playerBridge?.destroy();
