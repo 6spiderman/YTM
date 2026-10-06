@@ -21,3 +21,8 @@ document.getElementById('max-btn')?.addEventListener('click', () => {
 document.getElementById('close-btn')?.addEventListener('click', () => {
   window.api.closeWindow();
 });
+
+// Tell the main process the real viewport size (used for the YouTube view layout on Linux).
+const reportViewport = () => window.api.reportViewport?.(window.innerWidth, window.innerHeight);
+window.addEventListener('resize', reportViewport);
+reportViewport();

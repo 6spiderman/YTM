@@ -29,4 +29,9 @@ contextBridge.exposeInMainWorld('api', {
   reloadPage: () => {
     ipcRenderer.send('window:reload-ytm');
   },
+  // The title-bar page is the only reliable source of the window's real content size on Linux
+  // (BrowserWindow.getContentSize is off by the frame insets while a frameless window is maximised).
+  reportViewport: (width: number, height: number) => {
+    ipcRenderer.send('window:viewport', { width, height });
+  },
 });

@@ -1,10 +1,10 @@
-import { BrowserWindow, WebContentsView, app, nativeImage } from 'electron';
+import { BrowserWindow, WebContents, WebContentsView, app, nativeImage } from 'electron';
 import path from 'path';
 import { SettingsManager } from './settingsManager';
 import { PlayerBridge } from './playerBridge';
 import { Settings } from '../types';
 import { waylandPositionOverride } from './platform/linux/displayServer';
-import { applyLinuxWindowIcon } from './platform/linux/windowAssets';
+import { applyLinuxWindowIcon, centeredOnWindow } from './platform/linux/windowAssets';
 
 const TITLE_BAR_HEIGHT = 36;
 
@@ -17,6 +17,8 @@ export class WindowManager {
   private isMiniMode = false;
   private lastActiveBlurTime = 0;
   private suppressProxyActivation = false;
+  /** Linux: the title-bar page's innerWidth/innerHeight, the only exact content size there. */
+  private reportedViewport: { width: number; height: number } | null = null;
 
   constructor(
     private settings: SettingsManager,
@@ -211,9 +213,24 @@ export class WindowManager {
     });
   }
 
+  /**
+   * Linux only: lay the YouTube view out from the size the title-bar page actually has. While a
+   * frameless window is maximised, getContentSize() includes the invisible frame insets, which
+   * pushed the view (and YouTube Music's player bar) below the visible area.
+   */
+  reportViewport(sender: WebContents, width: number, height: number): void {
+    if (process.platform !== 'linux') return;
+    if (!this.mainWindow || sender !== this.mainWindow.webContents) return;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+    this.reportedViewport = { width: Math.round(width), height: Math.round(height) };
+    this.positionYtmView();
+  }
+
   private positionYtmView(): void {
     if (!this.mainWindow || !this.ytmView) return;
-    const [width, height] = this.mainWindow.getContentSize();
+    const [width, height] = process.platform === 'linux' && this.reportedViewport
+      ? [this.reportedViewport.width, this.reportedViewport.height]
+      : this.mainWindow.getContentSize();
     this.ytmView.setBounds({
       x: 0,
       y: TITLE_BAR_HEIGHT,
@@ -355,6 +372,9 @@ export class WindowManager {
     this.settingsWindow = new BrowserWindow({
       width: 600,
       height: 700,
+      // Linux: without a position the window manager centres the window on the primary monitor,
+      // which may not be where YTM is. Centre it on the main window (or the cursor's screen).
+      ...(process.platform === 'linux' ? centeredOnWindow(this.mainWindow, 600, 700) : {}),
       resizable: false,
       title: 'YTM Settings',
       backgroundColor: '#0d1117',
