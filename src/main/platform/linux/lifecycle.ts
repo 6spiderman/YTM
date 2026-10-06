@@ -30,7 +30,8 @@ export function startedWithoutSandbox(argv: ReadonlyArray<string>, env: NodeJS.P
 /**
  * The project never ships --no-sandbox, but electron-builder's AppImage launcher appends it when
  * user namespaces are unavailable. Refuse to continue in that case: explain on stderr at once,
- * show the dialog once the app is ready (before that it is a silent no-op on Linux) and exit with 1.
+ * show a dialog once the app is ready (before that GTK dialogs are a silent no-op on Linux) and exit
+ * with 1 after it is dismissed.
  * Returns true when the app is going to exit; the caller must not quit or open windows.
  */
 export function refuseUnsandboxedStart(
@@ -39,13 +40,11 @@ export function refuseUnsandboxedStart(
 ): boolean {
   if (!startedWithoutSandbox(argv, env)) return false;
   console.error('[sandbox] ' + NO_SANDBOX_MESSAGE);
-  app.whenReady().then(() => {
-    try {
-      dialog.showErrorBox('YTM cannot start without the sandbox', NO_SANDBOX_MESSAGE);
-    } catch {
-      // headless or no display: the console message is enough
-    }
-    app.exit(1);
-  });
+  app.whenReady().then(() =>
+    // showErrorBox returns before the user has seen anything; the promise-based box waits for OK.
+    dialog.showMessageBox({ type: 'error', title: 'YTM cannot start without the sandbox', message: 'YTM cannot start without the sandbox', detail: NO_SANDBOX_MESSAGE, buttons: ['OK'] })
+      .catch(() => undefined) // headless or no display: the console message is enough
+      .then(() => app.exit(1))
+  );
   return true;
 }
