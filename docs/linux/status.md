@@ -1,4 +1,4 @@
-# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06
+# Status: Linux support for all mainstream distros (1.2.0), updated 2026-10-06 (CI green)
 
 Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/linux-distros` in `~/src/YTM`. The 1.1.0 Kubuntu work and its open items are in `docs/kubuntu/status.md`.
 
@@ -15,13 +15,13 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 
 | Phase | State |
 |---|---|
-| 0 Spikes | S14, S15, S18 done (`spikes.md`). S16 **USER** (`sudo apt install rpm libarchive-tools`). S17, S19 **CI** |
+| 0 Spikes | All done (`spikes.md`); S16, S17 and S19 answered by CI run 37448787332 |
 | 1 Code | Done: gdbus fallback with capability gate, X11 relaunch, AppImage-aware autostart, no-sandbox refusal. 144 unit tests pass locally (`npx jest`), typecheck and lint clean, `check-windows-inputs.js` green |
-| 2 Packaging | Done: `electron-builder.linux.yml` builds deb/rpm/pacman/AppImage. deb and AppImage built and checked here; rpm and pacman need S16 |
+| 2 Packaging | Done: `electron-builder.linux.yml` builds deb/rpm/pacman/AppImage. deb and AppImage built and checked here; all four built and checked in CI |
 | 3 Checks | Done: `check-deb.sh`, `check-rpm.sh`, `check-pacman.sh`, `check-appimage.sh`, `smoke-linux.sh` (AppImage-capable), `scripts/ci/container-test.sh` |
-| 4 CI | Written; **CI** on first push |
+| 4 CI | Green on 453842c: windows, ubuntu (4 packages, static checks, deb smoke with userns restricted and unrestricted, AppImage smoke), audit, and the five container rows |
 | 5 Docs | README, tester checklist, issue form, this file |
-| 6 Version | 1.2.0 set. **USER:** Electron reselection on/after 2026-10-14 |
+| 6 Version | 1.2.0; Electron 44.4.4 selected 2026-10-06 under the freshness rule (`dependency-log.md`) |
 | 7 Release | **USER** |
 
 ## Per-distro matrix
@@ -30,17 +30,16 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 |---|---|---|---|
 | Kubuntu 26.04 deb | **USER** (sudo) | Done on `linux-unpacked`; CI on the runner | **USER** |
 | Kubuntu 26.04 AppImage | Done (runs, static runtime) | Done | Done by script: flag-less start relaunches in X11 mode, `--no-sandbox` start shows the refusal window and waits. **USER**: autostart entry points at the AppImage (needs a login), visual check of the window |
-| Ubuntu 24.04 (CI runner) deb | CI | CI, userns restricted and unrestricted | n/a |
-| Debian 12 / 13 deb | CI container | CI container | TESTERS |
-| Fedora rpm | CI container | CI container | TESTERS |
-| openSUSE Tumbleweed rpm | CI container (non-blocking) | CI container (non-blocking) | TESTERS |
-| Arch pacman | CI container | CI container | TESTERS |
+| Ubuntu 24.04 (CI runner) deb | Done (CI) | Done (CI), userns restricted and unrestricted | n/a |
+| Debian 12 / 13 deb | Done (CI container) | Done (CI container, sandboxed renderer as an unprivileged user) | TESTERS |
+| Fedora rpm | Done (CI container) | Done (CI container) | TESTERS |
+| openSUSE Tumbleweed rpm | Done (CI container) | Done (CI container) | TESTERS |
+| Arch pacman | Done (CI container) | Done (CI container) | TESTERS |
 | Other distros, AppImage | TESTERS | | TESTERS |
 
 ## Open USER items
 
-1. `sudo apt install rpm libarchive-tools`, then `npm run build:linux` and the four check scripts (S16, S19 locally).
+1. Optional: `sudo apt install rpm libarchive-tools` to build and check the rpm and pacman packages locally (CI already does).
 2. Install the 1.2.0 deb over 1.1.0 and run `docs/linux/tester-checklist.md` yourself; also start the AppImage from a terminal without flags.
-3. Read the CI matrix after the push (S17 decides the container flags).
-4. Grant repository access to testers (or make the repo public) and send them the checklist link.
-5. Electron reselection on/after 2026-10-14, rebuild, Windows gates W-A/W-B, publish 1.2.0, delete the v1.1.0 draft.
+3. Grant repository access to testers (or make the repo public) and send them the checklist link.
+4. Windows gates W-A/W-B with the CI-built `YTM Setup 1.2.0.exe` (artifact `windows-installer` of the green run), attach it to the draft release, publish.
