@@ -5,5 +5,6 @@ dist-installer/
 .claude/
 docs/*
 !docs/kubuntu/
+!docs/linux/
 tests/
 dist-installer-linux/

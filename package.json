@@ -1,6 +1,6 @@
 {
   "name": "ytm",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "YouTube Music desktop app for Windows",
   "author": "YTM Contributors",
   "main": "dist/main/index.js",
@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint:linux": "eslint \"src/**/*.ts\"",
     "dev:linux": "concurrently \"tsc -w\" \"node scripts/bundle-renderer.js --watch\" \"cpx \\\"src/renderer/**/*.html\\\" dist/renderer --watch\" \"electron . --ozone-platform=x11\"",
-    "build:linux": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --linux deb --x64 --config electron-builder.linux.yml --publish never"
+    "build:linux": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --linux --x64 --config electron-builder.linux.yml --publish never",
+    "build:linux:deb": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --linux deb --x64 --config electron-builder.linux.yml --publish never"
   },
   "dependencies": {
     "electron-store": "^8.0.0"
@@ -24,7 +25,7 @@
     "@typescript-eslint/parser": "^7.0.0",
     "concurrently": "^8.0.0",
     "cpx2": "^4.2.0",
-    "electron": "44.4.3",
+    "electron": "44.4.4",
     "electron-builder": "26.16.1",
     "esbuild": "^0.28.0",
     "eslint": "^8.0.0",

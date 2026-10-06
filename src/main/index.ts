@@ -7,12 +7,17 @@ import { TrayManager } from './trayManager';
 import { ShortcutManager } from './shortcutManager';
 import { NotificationManager } from './notificationManager';
 import { PlayerBridge } from './playerBridge';
-import { installTerminationHandlers } from './platform/linux/lifecycle';
+import { installTerminationHandlers, refuseUnsandboxedStart } from './platform/linux/lifecycle';
+import { relaunchInX11IfNeeded } from './platform/linux/displayServer';
 
-const gotLock = app.requestSingleInstanceLock();
+// Linux: a flag-less start inside a Wayland session restarts itself in X11 mode (displayServer.ts),
+// and a start that an AppImage launcher downgraded to --no-sandbox is refused (lifecycle.ts).
+// Both must happen before the single-instance lock so a new instance can take it.
+const relaunching = process.platform === 'linux' && (relaunchInX11IfNeeded() || refuseUnsandboxedStart());
+const gotLock = !relaunching && app.requestSingleInstanceLock();
 
 if (!gotLock) {
-  app.quit();
+  if (!relaunching) app.quit();
 } else {
   let windowManager: WindowManager;
   let trayManager: TrayManager;

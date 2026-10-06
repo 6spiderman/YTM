@@ -69,29 +69,81 @@ jobs:
         run: if [ -d tests ]; then npx jest; else echo "tests/ is not in the repository; skipping jest"; fi
       - name: Check Windows build inputs against baseline
         run: node scripts/check-windows-inputs.js win-baseline-1.0.0
-      - name: Install packaging and test tools
+      - name: Install packaging and test tools (rpmbuild for rpm, bsdtar for pacman)
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb x11-utils desktop-file-utils
-      - name: Build the .deb
+          sudo apt-get install -y xvfb x11-utils desktop-file-utils rpm libarchive-tools zstd
+      - name: Build the Linux packages (deb, rpm, pacman, AppImage)
         run: npm run build:linux
-      - name: Static .deb checks
-        run: scripts/check-deb.sh dist-installer-linux/ytm_*_amd64.deb
+      - name: Static package checks
+        run: |
+          scripts/check-deb.sh dist-installer-linux/ytm_*_amd64.deb
+          scripts/check-rpm.sh dist-installer-linux/ytm-*.x86_64.rpm
+          scripts/check-pacman.sh dist-installer-linux/ytm-*-x86_64.pkg.tar.zst
+          scripts/check-appimage.sh dist-installer-linux/YTM-*-x86_64.AppImage
       - name: Install the .deb
         run: sudo apt-get install -y ./dist-installer-linux/ytm_*_amd64.deb
-      - name: Smoke test, unprivileged user namespaces restricted (stock Ubuntu default)
+      - name: Smoke test (deb), unprivileged user namespaces restricted (stock Ubuntu default)
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
           xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
-      - name: Smoke test, user namespaces unrestricted
+      - name: Smoke test (deb), user namespaces unrestricted
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           xvfb-run -a scripts/smoke-linux.sh /usr/bin/ytm 40
+      - name: Smoke test (AppImage), user namespaces unrestricted
+        run: xvfb-run -a scripts/smoke-linux.sh "$PWD"/dist-installer-linux/YTM-*-x86_64.AppImage 40
+      - name: AppImage with user namespaces restricted (documented limitation, must not pass silently)
+        # The AppImage cannot carry a setuid chrome-sandbox. electron-builder's AppRun then falls back to
+        # --no-sandbox, which the smoke test reports as a failure. This step records the behaviour on a
+        # stock Ubuntu 24.04+ kernel setting; it is informational and never blocks the build.
+        continue-on-error: true
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
+          xvfb-run -a scripts/smoke-linux.sh "$PWD"/dist-installer-linux/YTM-*-x86_64.AppImage 40
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: ytm-deb
-          path: dist-installer-linux/*.deb
+          name: linux-packages
+          path: |
+            dist-installer-linux/*.deb
+            dist-installer-linux/*.rpm
+            dist-installer-linux/*.pkg.tar.zst
+            dist-installer-linux/*.AppImage
           if-no-files-found: error
+
+  # Install, headless smoke test and removal of each package format inside a stock distro container.
+  linux-containers:
+    needs: ubuntu
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { image: 'debian:12', format: deb, glob: 'ytm_*_amd64.deb' }
+          - { image: 'debian:13', format: deb, glob: 'ytm_*_amd64.deb' }
+          - { image: 'fedora:latest', format: rpm, glob: 'ytm-*.x86_64.rpm' }
+          - { image: 'archlinux:latest', format: pacman, glob: 'ytm-*-x86_64.pkg.tar.zst' }
+          # openSUSE is untested by the maintainer; the rpm uses rich dependencies that should resolve there.
+          - { image: 'opensuse/tumbleweed', format: rpm, glob: 'ytm-*.x86_64.rpm', experimental: true }
+    continue-on-error: ${{ matrix.experimental || false }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # actions/download-artifact v8.0.1 (released 2026-03-11)
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: linux-packages
+          path: dist-installer-linux
+      - name: Install, smoke test and remove inside ${{ matrix.image }}
+        # The Chromium sandbox needs unprivileged user namespaces inside the container. Docker's default
+        # seccomp/AppArmor profiles block them, and so does the Ubuntu runner's
+        # kernel.apparmor_restrict_unprivileged_userns=1, which applies to unconfined container processes
+        # as well. Fedora, Arch and Debian hosts allow them by default, so the runner is set to match (S17).
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          PKG=$(ls dist-installer-linux/${{ matrix.glob }} | head -1)
+          docker run --rm --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
+            -v "$PWD:/work" -w /work "${{ matrix.image }}" \
+            bash scripts/ci/container-test.sh "${{ matrix.format }}" "/work/$PKG"
 
   audit:
     runs-on: ubuntu-24.04

@@ -16,6 +16,15 @@ export function autostartPath(env: NodeJS.ProcessEnv = process.env, home: string
 }
 
 /**
+ * The file to start for a new instance: the AppImage itself when running from one (the binary at
+ * `process.execPath` lives in a temporary mount), otherwise the real executable.
+ */
+export function launcherPath(env: NodeJS.ProcessEnv = process.env, execPath: string = process.execPath): string {
+  const appImage = env.APPIMAGE;
+  return appImage && path.isAbsolute(appImage) ? appImage : execPath;
+}
+
+/**
  * Quoting for a Desktop Entry `Exec` argument: wrap in double quotes when it contains reserved
  * characters, backslash-escape `"`, `` ` ``, `$` and `\`, then double every backslash again for the
  * string-value escape rule, and write literal `%` as `%%` so it is not read as a field code.
@@ -51,7 +60,7 @@ export function applyAutostart(enabled: boolean, file: string = autostartPath())
   try {
     if (enabled) {
       fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, buildAutostartEntry(process.execPath), { mode: 0o644 });
+      fs.writeFileSync(file, buildAutostartEntry(launcherPath()), { mode: 0o644 });
     } else {
       fs.rmSync(file, { force: true });
     }

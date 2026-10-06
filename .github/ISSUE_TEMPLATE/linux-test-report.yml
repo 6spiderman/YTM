@@ -1,0 +1,73 @@
+name: Linux test report
+description: Results from docs/linux/tester-checklist.md on a Linux distribution
+title: "[Linux test] <distro> <version> (<format>)"
+labels: ["linux", "testing"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for testing YTM. Follow docs/linux/tester-checklist.md and fill in the results here.
+  - type: input
+    id: distro
+    attributes:
+      label: Distribution and version
+      placeholder: Fedora 42, Linux Mint 22.1, Arch (2026-10), openSUSE Tumbleweed
+    validations:
+      required: true
+  - type: input
+    id: desktop
+    attributes:
+      label: Desktop environment and version
+      placeholder: GNOME 48, KDE Plasma 6.3, XFCE 4.20, Cinnamon 6.4
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Package format
+      options: [deb, rpm, pacman, AppImage]
+    validations:
+      required: true
+  - type: dropdown
+    id: session
+    attributes:
+      label: Session type (echo $XDG_SESSION_TYPE)
+      options: [wayland, x11, other / unknown]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment block
+      description: Output of the commands in section 1 of the checklist
+      render: shell
+  - type: checkboxes
+    id: passed
+    attributes:
+      label: Checks that passed
+      description: Tick what worked; describe anything that failed in the next field
+      options:
+        - label: "1 Start from the application menu"
+        - label: "2 Start from a terminal"
+        - label: "3 Window icon and single taskbar entry"
+        - label: "4 Tray icon, left click, menu"
+        - label: "5 Sign-in survives a restart"
+        - label: "6 Playback controls"
+        - label: "7 Track notification with three working buttons"
+        - label: "8 Media keys / desktop media widget"
+        - label: "9 Global shortcuts while another app has focus"
+        - label: "10 Mini player stays on top and remembers its position"
+        - label: "11 Start at login"
+        - label: "12 Upgrade keeps settings and sign-in"
+        - label: "13 Uninstall leaves no files except ~/.config/ytm"
+        - label: "14 Clean logout / shutdown"
+  - type: textarea
+    id: failures
+    attributes:
+      label: What failed, and what you saw
+      placeholder: "7: notification appeared but had no buttons (GNOME 48, Wayland)"
+  - type: textarea
+    id: log
+    attributes:
+      label: Terminal log
+      description: Output of `ytm 2>&1 | tee ~/ytm-report.log`
+      render: shell

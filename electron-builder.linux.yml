@@ -1,5 +1,6 @@
-# Linux (Kubuntu/Ubuntu) packaging. Windows packaging stays in electron-builder.yml, which this file
-# never replaces. Used via: electron-builder --linux deb --x64 --config electron-builder.linux.yml
+# Linux packaging for deb, rpm, pacman and AppImage (x64). Windows packaging stays in
+# electron-builder.yml, which this file never replaces.
+# Used via: electron-builder --linux --x64 --config electron-builder.linux.yml
 appId: com.go2cloud.ytm
 productName: YTM
 # Linux-only metadata injected into the packaged package.json at build time. Keeping it here (not in
@@ -15,26 +16,42 @@ files:
   - dist/**/*
   - assets/icons/icon.png
   - package.json
+toolsets:
+  # 1.0.x = static AppImage runtime (no libfuse2 needed on the host). "0.0.0" is the legacy FUSE2
+  # runtime; if it is ever used again, executableArgs must stay non-empty or electron-builder
+  # injects --no-sandbox into the desktop entry.
+  appimage: "1.0.3"
 linux:
   target:
     - target: deb
       arch: [x64]
+    - target: rpm
+      arch: [x64]
+    - target: pacman
+      arch: [x64]
+    - target: AppImage
+      arch: [x64]
   executableName: ytm
   icon: packaging/linux/icons
-  category: AudioVideo
+  # electron-builder writes "Categories=<category>;" and "Comment=<description>" into the desktop
+  # entry after merging desktop.entry, so both are set here rather than under desktop.entry.
+  category: AudioVideo;Audio;Player
   synopsis: YouTube Music desktop app
-  description: YouTube Music in its own window, with a tray icon, global shortcuts, a mini player, track notifications and KDE media controls.
+  description: YouTube Music in its own window, with a tray icon, global shortcuts, a mini player, track notifications with buttons and media-key support.
   maintainer: YTM Contributors <6spiderman@users.noreply.github.com>
+  # Menu launches run through XWayland so always-on-top and window positions work. Launches without
+  # the flag (AppImage from a terminal, /opt/YTM/ytm) relaunch themselves in X11 mode when a
+  # display is available (src/main/platform/linux/displayServer.ts).
   executableArgs:
     - --ozone-platform=x11
   desktop:
     entry:
-      Comment: YouTube Music desktop app
-      Categories: AudioVideo;Audio;Player;
       Keywords: music;youtube;player;
       StartupWMClass: ytm
 deb:
-  # electron-builder's default list plus systemd, which provides busctl (used for notification buttons).
+  artifactName: ${name}_${version}_amd64.deb
+  # electron-builder's default list plus libasound2 (linked by the Electron binary). No systemd
+  # dependency: notification buttons use busctl when present and fall back to gdbus.
   depends:
     - libgtk-3-0
     - libnotify4
@@ -45,8 +62,39 @@ deb:
     - libatspi2.0-0
     - libuuid1
     - libsecret-1-0
-    - systemd
+    - libasound2
   recommends:
-    - libappindicator3-1
+    - libayatana-appindicator3-1 | libappindicator3-1
+    - libglib2.0-bin
   packageCategory: sound
   priority: optional
+rpm:
+  artifactName: ${name}-${version}.x86_64.rpm
+  # Rich dependencies cover both Fedora/RHEL and openSUSE package names (rpm >= 4.13).
+  depends:
+    - (gtk3 or libgtk-3-0)
+    - (libnotify or libnotify4)
+    - (nss or mozilla-nss)
+    - (libXScrnSaver or libXss1)
+    - (libXtst or libXtst6)
+    - xdg-utils
+    - at-spi2-core
+    - (libuuid or libuuid1)
+    - (libsecret or libsecret-1-0)
+    - (alsa-lib or libasound2)
+pacman:
+  artifactName: ${name}-${version}-1-x86_64.pkg.tar.zst
+  # Replaces electron-builder's default list, which names the AUR-only libappindicator-gtk3.
+  depends:
+    - gtk3
+    - libnotify
+    - nss
+    - libxss
+    - libxtst
+    - xdg-utils
+    - at-spi2-core
+    - libsecret
+    - alsa-lib
+    - glib2
+appImage:
+  artifactName: ${productName}-${version}-x86_64.AppImage

@@ -15,8 +15,10 @@ dpkg-deb -x "$DEB" "$TMP"
 has "$CTRL" '^ Package: ytm$' && ok "package name is ytm" || bad "package name"
 has "$CTRL" '^ Architecture: amd64$' && ok "architecture amd64" || bad "architecture"
 has "$CTRL" '^ Maintainer: .+<.+@.+>' && ok "maintainer set" || bad "maintainer missing"
-has "$CTRL" '^ Depends:.*systemd' && ok "depends on systemd (busctl)" || bad "systemd dependency missing"
+if has "$CTRL" '^ Depends:.*systemd'; then bad "must not depend on systemd (gdbus is the fallback for busctl)"; else ok "no systemd dependency"; fi
 has "$CTRL" '^ Depends:.*libnss3' && ok "depends on libnss3" || bad "libnss3 dependency missing"
+has "$CTRL" '^ Depends:.*libasound2' && ok "depends on libasound2" || bad "libasound2 dependency missing"
+has "$CTRL" '^ Recommends:.*libglib2.0-bin' && ok "recommends libglib2.0-bin (gdbus)" || bad "libglib2.0-bin recommendation missing"
 has "$LIST" ' \./opt/YTM/ytm$' && ok "main binary at /opt/YTM/ytm" || bad "main binary missing"
 has "$LIST" ' \./opt/YTM/chrome-sandbox$' && ok "chrome-sandbox shipped" || bad "chrome-sandbox missing"
 has "$LIST" ' \./opt/YTM/resources/apparmor-profile$' && ok "AppArmor profile shipped" || bad "AppArmor profile missing"
@@ -30,6 +32,7 @@ if [ -f "$DESK" ]; then
   grep -q '^Exec=/opt/YTM/ytm --ozone-platform=x11' "$DESK" && ok "Exec starts in X11 mode" || bad "Exec line wrong"
   grep -q '^StartupWMClass=ytm$' "$DESK" && ok "StartupWMClass=ytm" || bad "StartupWMClass wrong"
   grep -q '^Icon=ytm$' "$DESK" && ok "Icon=ytm" || bad "Icon wrong"
+  grep -q '^Categories=AudioVideo;Audio;Player;$' "$DESK" && ok "Categories set" || bad "Categories wrong"
 else
   bad "ytm.desktop missing"
 fi
