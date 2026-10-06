@@ -124,6 +124,17 @@ export class NotificationManager {
     });
   }
 
+  /** One plain notification per new version; clicking it opens Settings. Independent of the track-notification toggle. */
+  notifyUpdateAvailable(version: string, onClick: () => void): void {
+    try {
+      const n = new Notification({ title: 'YTM update available', body: `Version ${version} is ready to install. Click to open Settings.` });
+      n.on('click', onClick);
+      n.show();
+    } catch (err) {
+      console.warn('[NotificationManager] update notification failed', err);
+    }
+  }
+
   private fetchAlbumArt(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const tmpPath = path.join(app.getPath('temp'), `ytm-album-art-${Date.now()}.jpg`);
