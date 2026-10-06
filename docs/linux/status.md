@@ -8,7 +8,7 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 
 - Formats: deb, rpm, pacman, AppImage; x64 only; no Flatpak/snap (possible follow-up).
 - Release 1.2.0 replaces the unpublished v1.1.0 draft.
-- **Sandbox:** electron-builder's AppImage launcher appends `--no-sandbox` when unprivileged user namespaces are unavailable (Ubuntu 24.04+ with `kernel.apparmor_restrict_unprivileged_userns=1`), and electron-builder 26.16.1 has no hook to replace that launcher. Because the project never runs unsandboxed, the app refuses such a start with an explanatory window and exit code 1 (`refuseUnsandboxedStart` in `lifecycle.ts`); `YTM_ALLOW_NO_SANDBOX=1` overrides it. **Owner decision pending:** keep the refusal (default) or let the AppImage run unsandboxed there like most Electron AppImages do. Either way the `.deb` is the documented route on Ubuntu.
+- **Sandbox:** electron-builder's AppImage launcher appends `--no-sandbox` when unprivileged user namespaces are unavailable (Ubuntu 24.04+ with `kernel.apparmor_restrict_unprivileged_userns=1`), and electron-builder 26.16.1 has no hook to replace that launcher. Because the project never runs unsandboxed, the app refuses such a start with an explanatory window and exit code 1 (`refuseUnsandboxedStart` in `lifecycle.ts`); `YTM_ALLOW_NO_SANDBOX=1` overrides it. **Owner decision 2026-10-06:** keep the refusal. The `.deb` is the documented route on Ubuntu.
 - Display mode: `.desktop` and autostart entries keep `--ozone-platform=x11`; a start without the flag inside a Wayland session that has XWayland relaunches itself in X11 mode (spike S14), so AppImage-from-terminal behaves the same.
 
 ## Phases
@@ -41,7 +41,6 @@ Legend: **Done** = implemented and verified by a command on the Kubuntu machine.
 
 1. `sudo apt install rpm libarchive-tools`, then `npm run build:linux` and the four check scripts (S16, S19 locally).
 2. Install the 1.2.0 deb over 1.1.0 and run `docs/linux/tester-checklist.md` yourself; also start the AppImage from a terminal without flags.
-3. Decide on the sandbox refusal (see Decisions).
-4. Push `feat/linux-distros`, read the CI matrix (S17 decides the container flags).
-5. Grant repository access to testers (or make the repo public) and send them the checklist link.
-6. Electron reselection on/after 2026-10-14, rebuild, Windows gates W-A/W-B, publish 1.2.0, delete the v1.1.0 draft.
+3. Read the CI matrix after the push (S17 decides the container flags).
+4. Grant repository access to testers (or make the repo public) and send them the checklist link.
+5. Electron reselection on/after 2026-10-14, rebuild, Windows gates W-A/W-B, publish 1.2.0, delete the v1.1.0 draft.
