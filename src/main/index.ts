@@ -76,7 +76,11 @@ if (!gotLock) {
       windowManager.hideMainWindow();
     }
 
-    shortcutManager.registerAll();
+    try {
+      shortcutManager.registerAll();
+    } catch (err) {
+      console.error('[ShortcutManager] registerAll failed', err);
+    }
 
     // IPC: settings
     ipcMain.handle('settings:get', () => settingsManager.get());

@@ -58,3 +58,10 @@ export interface Settings {
     playSound: boolean;
   };
 }
+
+export interface ShortcutFailure {
+  action: ShortcutAction;
+  accelerator: string;
+  /** invalid = not an accelerator Electron accepts; taken = another app owns it; failed = register() returned false; denied = the Wayland portal refused it */
+  reason: 'invalid' | 'taken' | 'failed' | 'denied';
+}

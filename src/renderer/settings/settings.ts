@@ -1,4 +1,5 @@
 import { Settings, ShortcutAction, ShortcutMap } from '../../types';
+import { keyEventToAccelerator } from '../../shared/accelerator';
 
 const SHORTCUT_LABELS: Record<ShortcutAction, string> = {
   playPause: 'Play / Pause',
@@ -122,23 +123,23 @@ async function handleCapture(e: KeyboardEvent) {
   e.preventDefault();
   if (!capturingAction) return;
 
-  const parts: string[] = [];
-  if (e.ctrlKey) parts.push('Ctrl');
-  if (e.altKey) parts.push('Alt');
-  if (e.shiftKey) parts.push('Shift');
-  if (e.metaKey) parts.push('Meta');
-
-  const key = e.key;
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return;
-
-  const keyName = key === ' ' ? 'Space' : key.length === 1 ? key.toUpperCase() : key;
-  parts.push(keyName);
-
-  if (parts.length < 2) return; // Require at least one modifier
-
-  const shortcut = parts.join('+');
   const action = capturingAction;
   const display = document.getElementById(`display-${action}`)!;
+  // Bare modifier presses are ignored while the user builds the combination.
+  if (['Control', 'Alt', 'Shift', 'Meta', 'AltGraph', 'OS'].includes(e.key)) return;
+
+  // Keys Electron cannot register (dead keys, letters outside A–Z, keys without a modifier) are refused
+  // here, so an unusable accelerator never reaches the main process.
+  const shortcut = keyEventToAccelerator(e);
+  if (!shortcut) {
+    const hasModifier = e.ctrlKey || e.altKey || e.shiftKey || e.metaKey;
+    display.textContent = hasModifier ? 'Unsupported key' : 'Add a modifier (Ctrl, Alt, Shift)';
+    display.classList.add('conflict');
+    setTimeout(() => {
+      if (capturingAction === action) { display.textContent = 'Press shortcut...'; display.classList.remove('conflict'); }
+    }, 1500);
+    return;
+  }
 
   const conflict = await window.settingsApi.checkConflict(shortcut, action);
   display.classList.remove('capturing', 'conflict');
