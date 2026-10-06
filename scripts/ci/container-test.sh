@@ -20,19 +20,21 @@ step "install tools and the package ($FORMAT)"
 if command -v apt-get >/dev/null; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y -qq xvfb x11-utils procps util-linux >/dev/null
+  apt-get install -y -qq xvfb x11-utils procps util-linux gawk >/dev/null
   apt-get install -y -qq "$PKG" && ok "apt installed the package" || bad "apt install failed"
   REMOVE="apt-get remove -y -qq ytm"
 elif command -v dnf >/dev/null; then
-  dnf install -y -q xorg-x11-server-Xvfb xorg-x11-utils procps-ng util-linux >/dev/null   # util-linux (not -core) has runuser
+  # xorg-x11-utils was split up in recent Fedora releases; install what exists and show the outcome.
+  dnf install -y -q xorg-x11-server-Xvfb procps-ng util-linux gawk | tail -3
+  dnf install -y -q xwininfo | tail -1 || dnf install -y -q xorg-x11-utils | tail -1
   dnf install -y -q "$PKG" && ok "dnf installed the package" || bad "dnf install failed"
   REMOVE="dnf remove -y -q ytm"
 elif command -v zypper >/dev/null; then
-  zypper --non-interactive --quiet install xorg-x11-server-Xvfb xvfb-run xwininfo procps util-linux >/dev/null
+  zypper --non-interactive --quiet install xorg-x11-server-Xvfb xvfb-run xwininfo procps util-linux gawk >/dev/null
   zypper --non-interactive --quiet install --allow-unsigned-rpm "$PKG" && ok "zypper installed the package" || bad "zypper install failed"
   REMOVE="zypper --non-interactive remove ytm"
 elif command -v pacman >/dev/null; then
-  pacman -Syu --noconfirm --quiet xorg-server-xvfb xorg-xwininfo procps-ng util-linux >/dev/null
+  pacman -Syu --noconfirm --quiet xorg-server-xvfb xorg-xwininfo procps-ng util-linux gawk >/dev/null
   pacman -U --noconfirm "$PKG" && ok "pacman installed the package" || bad "pacman install failed"
   REMOVE="pacman -R --noconfirm ytm"
 else
@@ -50,16 +52,19 @@ MODE=$(stat -c %a /opt/YTM/chrome-sandbox 2>/dev/null || echo none)
 echo "info  chrome-sandbox mode $MODE; unshare -Ur as root: $(unshare -Ur true 2>/dev/null && echo works || echo unavailable)"
 
 step "headless smoke test as an unprivileged user"
-id tester >/dev/null 2>&1 || useradd -m tester
+id tester >/dev/null 2>&1 || useradd -m -s /bin/bash tester
 chmod +x /work/scripts/smoke-linux.sh
+for tool in xvfb-run xwininfo awk pgrep su; do command -v "$tool" >/dev/null || bad "tool missing in the image: $tool"; done
+# su is used rather than runuser: Fedora's minimal image does not ship runuser.
+as_tester() { su -s /bin/bash tester -c "$*"; }
 # Chromium needs either unprivileged user namespaces or a setuid chrome-sandbox. The package's
 # post-install picks the mode from root's view, so report what the unprivileged user actually gets.
-if runuser -u tester -- unshare -Ur true 2>/dev/null; then
+if as_tester unshare -Ur true 2>/dev/null; then
   ok "unprivileged user namespaces available to tester"
 else
   echo "info  user namespaces unavailable to tester (host restriction); chrome-sandbox mode is $MODE"
 fi
-if runuser -u tester -- env HOME=/home/tester xvfb-run -a /work/scripts/smoke-linux.sh /usr/bin/ytm "$WAIT"; then
+if as_tester "HOME=/home/tester xvfb-run -a /work/scripts/smoke-linux.sh /usr/bin/ytm $WAIT"; then
   ok "smoke test passed"
 else
   bad "smoke test failed"
