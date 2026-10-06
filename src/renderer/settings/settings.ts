@@ -1,4 +1,4 @@
-import { Settings, ShortcutAction, ShortcutMap } from '../../types';
+import { AppEnvironment, Settings, ShortcutAction, ShortcutFailure, ShortcutMap, UpdateState } from '../../types';
 import { keyEventToAccelerator } from '../../shared/accelerator';
 
 const SHORTCUT_LABELS: Record<ShortcutAction, string> = {
@@ -20,14 +20,21 @@ let capturingAction: ShortcutAction | null = null;
 let pendingShortcuts: ShortcutMap;
 // JSON of the form as last loaded or saved; Save is only enabled while the form differs from it.
 let savedSnapshot = '';
+let environment: AppEnvironment | null = null;
+let shortcutFailures: ShortcutFailure[] = [];
 
 async function init() {
   try {
     currentSettings = await window.settingsApi.getSettings();
     pendingShortcuts = { ...currentSettings.shortcuts };
+    environment = await window.settingsApi.getEnvironment();
+    shortcutFailures = environment.shortcutFailures;
     populateForm();
+    applyEnvironment(environment);
     buildShortcutsTable();
     markSaved();
+    renderUpdateState(environment.updateState);
+    window.settingsApi.onUpdateState(renderUpdateState);
   } catch (err) {
     const container = document.getElementById('shortcuts-container');
     if (container) {
@@ -50,6 +57,103 @@ function populateForm() {
   (document.getElementById('notifBody') as HTMLInputElement).value = currentSettings.notifications.bodyTemplate;
   (document.getElementById('showAlbumArt') as HTMLInputElement).checked = currentSettings.notifications.showAlbumArt;
   (document.getElementById('playSound') as HTMLInputElement).checked = currentSettings.notifications.playSound;
+  (document.getElementById('taskbarProgress') as HTMLInputElement).checked = currentSettings.taskbarProgress;
+  (document.getElementById('nativeWayland') as HTMLInputElement).checked = currentSettings.nativeWayland;
+  (document.getElementById('checkAutomatically') as HTMLInputElement).checked = currentSettings.updates.checkAutomatically;
+}
+
+/** Platform-dependent parts of the page: Linux-only rows, Wayland limitations, version label. */
+function applyEnvironment(env: AppEnvironment) {
+  document.getElementById('updateVersion')!.textContent = env.version;
+  if (env.platform === 'linux') {
+    document.getElementById('nativeWaylandRow')!.classList.remove('hidden');
+    document.getElementById('nativeWaylandHint')!.classList.remove('hidden');
+  }
+  if (env.nativeWayland) {
+    const onTop = document.getElementById('miniPlayerAlwaysOnTop') as HTMLInputElement;
+    onTop.disabled = true;
+    document.getElementById('alwaysOnTopHint')!.classList.remove('hidden');
+  }
+}
+
+function formatLastCheck(ts: number): string {
+  if (!ts) return 'never';
+  const d = new Date(ts);
+  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function renderUpdateState(state: UpdateState) {
+  const status = document.getElementById('updateStatus')!;
+  const install = document.getElementById('installUpdateBtn') as HTMLButtonElement;
+  const check = document.getElementById('checkUpdatesBtn') as HTMLButtonElement;
+  const banner = document.getElementById('updateBanner')!;
+  const bannerText = document.getElementById('updateBannerText')!;
+  const bannerAction = document.getElementById('updateBannerAction') as HTMLButtonElement;
+  status.className = 'status-line';
+  install.classList.add('hidden');
+  banner.classList.remove('visible');
+  check.disabled = false;
+  const last = `Last check: ${formatLastCheck(currentSettings?.updates.lastCheck ?? 0)}`;
+  switch (state.kind) {
+    case 'unsupported':
+      status.textContent = 'Update checks are only available in the installed app.';
+      check.disabled = true;
+      break;
+    case 'checking':
+      status.textContent = 'Checking for updates…';
+      check.disabled = true;
+      break;
+    case 'up-to-date':
+      status.textContent = `You are up to date. ${last}`;
+      status.classList.add('good');
+      break;
+    case 'available':
+      status.textContent = `Version ${state.version} is available.`;
+      status.classList.add('good');
+      install.textContent = 'Install now';
+      install.classList.remove('hidden');
+      bannerText.textContent = `YTM ${state.version} is available.`;
+      bannerAction.textContent = 'Install now';
+      banner.classList.add('visible');
+      break;
+    case 'downloading':
+      status.textContent = `Downloading ${state.version}… ${state.percent}%`;
+      check.disabled = true;
+      bannerText.textContent = `Downloading YTM ${state.version}… ${state.percent}%`;
+      bannerAction.textContent = 'Install now';
+      bannerAction.disabled = true;
+      banner.classList.add('visible');
+      break;
+    case 'downloaded':
+      status.textContent = `Version ${state.version} is downloaded. Restart to finish the update.`;
+      status.classList.add('good');
+      install.textContent = 'Restart now';
+      install.classList.remove('hidden');
+      bannerText.textContent = `YTM ${state.version} is ready. Restart to update.`;
+      bannerAction.textContent = 'Restart now';
+      bannerAction.disabled = false;
+      banner.classList.add('visible');
+      break;
+    case 'error':
+      status.textContent = `Update check failed: ${state.message}`;
+      status.classList.add('error');
+      break;
+    default:
+      status.textContent = `Not checked yet. ${last}`;
+  }
+  if (state.kind !== 'downloading') bannerAction.disabled = false;
+}
+
+async function onUpdateAction() {
+  const env = await window.settingsApi.getEnvironment();
+  if (env.updateState.kind === 'available') await window.settingsApi.downloadUpdate();
+  else if (env.updateState.kind === 'downloaded') await window.settingsApi.installUpdate();
+}
+
+async function onUpdateLater() {
+  const env = await window.settingsApi.getEnvironment();
+  const v = 'version' in env.updateState ? env.updateState.version : '';
+  if (v) await window.settingsApi.dismissUpdate(v);
 }
 
 function buildShortcutsTable() {
@@ -70,6 +174,13 @@ function buildShortcutsTable() {
     display.id = `display-${action}`;
     display.textContent = pendingShortcuts[action] || '(not set)';
     if (!pendingShortcuts[action]) display.classList.add('unset');
+    const failure = shortcutFailures.find((f) => f.action === action && f.accelerator === pendingShortcuts[action]);
+    if (failure) {
+      display.classList.add('conflict');
+      display.title = failure.reason === 'taken' ? 'Not registered: another app uses this shortcut'
+        : failure.reason === 'denied' ? 'Not granted by the desktop (Wayland shortcuts portal)'
+        : 'Not registered: Electron rejected this shortcut';
+    }
 
     const changeBtn = document.createElement('button');
     changeBtn.className = 'change-btn';
@@ -183,6 +294,12 @@ function collectForm(): Omit<Settings, 'windowBounds' | 'miniPlayerBounds'> {
       showAlbumArt: (document.getElementById('showAlbumArt') as HTMLInputElement).checked,
       playSound: (document.getElementById('playSound') as HTMLInputElement).checked,
     },
+    taskbarProgress: (document.getElementById('taskbarProgress') as HTMLInputElement).checked,
+    nativeWayland: (document.getElementById('nativeWayland') as HTMLInputElement).checked,
+    updates: {
+      ...currentSettings.updates, // lastCheck / dismissedVersion belong to the main process
+      checkAutomatically: (document.getElementById('checkAutomatically') as HTMLInputElement).checked,
+    },
   };
 }
 
@@ -227,6 +344,11 @@ if (/linux/i.test(navigator.platform)) {
 }
 
 document.getElementById('saveBtn')?.addEventListener('click', save);
+document.getElementById('checkUpdatesBtn')?.addEventListener('click', () => { void window.settingsApi.checkForUpdates(); });
+document.getElementById('installUpdateBtn')?.addEventListener('click', () => { void onUpdateAction(); });
+document.getElementById('updateBannerAction')?.addEventListener('click', () => { void onUpdateAction(); });
+document.getElementById('updateBannerLater')?.addEventListener('click', () => { void onUpdateLater(); });
+document.getElementById('releasePageBtn')?.addEventListener('click', () => window.settingsApi.openReleasePage());
 document.addEventListener('input', updateSaveState);
 document.addEventListener('change', updateSaveState);
 document.getElementById('cancelBtn')?.addEventListener('click', () => window.settingsApi.closeSettings());
