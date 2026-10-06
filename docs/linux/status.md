@@ -1,4 +1,4 @@
-# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.0 published; 1.2.1 in progress)
+# Status: Linux support for all mainstream distros, updated 2026-10-06 (1.2.1 published)
 
 ## 1.2.1: fixes from the first round of Linux testing
 
@@ -8,7 +8,7 @@
 | Settings button "does nothing" on Kubuntu | The settings window had no position, so KWin centred it on the primary monitor while YTM was on the other screen | Linux: centre the settings window on the main window, clamped to its display's work area; cursor display when the main window is hidden (`centeredOnWindow`) | Settings window opened at the main window's centre on the second monitor |
 | Save button always green; no feedback | No change tracking | Save is disabled/grey until the form differs from the loaded or last-saved settings; saving keeps the window open and re-reads stored settings first; Cancel is now Close | Grey → green on change → grey on revert → grey after save, window open, value stored |
 
-All three are in branch `fix/linux-ui-1.2.1`; 152 unit tests, typecheck, lint and the Windows-input guard pass. Release 1.2.1 follows the 1.2.0 procedure (CI, PR, tag, release with CI-built packages).
+PR #2 merged (93bf3d8), tagged `v1.2.1` and **published 2026-10-06** at https://github.com/6spiderman/YTM/releases/tag/v1.2.1 with the five CI-built packages (run 37476951862) and `SHA512SUMS`. 152 unit tests, typecheck, lint and the Windows-input guard pass.
 
 
 Plan: `~/.claude/plans/can-we-make-the-delegated-wombat.md` (approved 2026-10-06). Branch `feat/linux-distros` in `~/src/YTM`. The 1.1.0 Kubuntu work and its open items are in `docs/kubuntu/status.md`.
