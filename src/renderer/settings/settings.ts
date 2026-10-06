@@ -17,6 +17,8 @@ const SHORTCUT_ACTIONS = Object.keys(SHORTCUT_LABELS) as ShortcutAction[];
 let currentSettings: Settings;
 let capturingAction: ShortcutAction | null = null;
 let pendingShortcuts: ShortcutMap;
+// JSON of the form as last loaded or saved; Save is only enabled while the form differs from it.
+let savedSnapshot = '';
 
 async function init() {
   try {
@@ -24,6 +26,7 @@ async function init() {
     pendingShortcuts = { ...currentSettings.shortcuts };
     populateForm();
     buildShortcutsTable();
+    markSaved();
   } catch (err) {
     const container = document.getElementById('shortcuts-container');
     if (container) {
@@ -80,6 +83,7 @@ function buildShortcutsTable() {
     clearBtn.addEventListener('click', () => {
       pendingShortcuts[action] = '';
       buildShortcutsTable();
+      updateSaveState();
     });
 
     row.appendChild(nameEl);
@@ -154,11 +158,17 @@ async function handleCapture(e: KeyboardEvent) {
   document.removeEventListener('keydown', handleCapture);
   capturingAction = null;
   buildShortcutsTable();
+  updateSaveState();
 }
 
-async function save() {
-  const newSettings: Settings = {
-    ...currentSettings,
+/** The user-editable part of the settings, read from the form. */
+function collectForm(): Omit<Settings, 'windowBounds' | 'miniPlayerBounds'> {
+  // Window positions are owned by the main process; they must not travel with the form.
+  const rest: Partial<Settings> = { ...currentSettings };
+  delete rest.windowBounds;
+  delete rest.miniPlayerBounds;
+  return {
+    ...(rest as Omit<Settings, 'windowBounds' | 'miniPlayerBounds'>),
     startWithWindows: (document.getElementById('startWithWindows') as HTMLInputElement).checked,
     startMinimised: (document.getElementById('startMinimised') as HTMLInputElement).checked,
     minimiseToTray: (document.getElementById('minimiseToTray') as HTMLInputElement).checked,
@@ -173,17 +183,40 @@ async function save() {
       playSound: (document.getElementById('playSound') as HTMLInputElement).checked,
     },
   };
+}
 
+function isDirty(): boolean {
+  return JSON.stringify(collectForm()) !== savedSnapshot;
+}
+
+/** Save is grey (disabled) while nothing changed and green once the form differs from what is saved. */
+function updateSaveState() {
+  const btn = document.getElementById('saveBtn') as HTMLButtonElement | null;
+  if (btn) btn.disabled = !isDirty();
+}
+
+function markSaved() {
+  savedSnapshot = JSON.stringify(collectForm());
+  updateSaveState();
+}
+
+async function save() {
+  if (!isDirty()) return;
+  // Re-read the stored settings so window positions saved meanwhile are not overwritten.
+  const latest = await window.settingsApi.getSettings();
+  const newSettings: Settings = { ...latest, ...collectForm() };
   await window.settingsApi.saveSettings(newSettings);
-  window.settingsApi.closeSettings();
+  currentSettings = newSettings;
+  markSaved();
 }
 
 async function resetToDefaults() {
   const defaults = await window.settingsApi.getDefaults();
-  currentSettings = defaults;
+  currentSettings = { ...currentSettings, ...defaults, windowBounds: currentSettings.windowBounds, miniPlayerBounds: currentSettings.miniPlayerBounds };
   pendingShortcuts = { ...defaults.shortcuts };
   populateForm();
   buildShortcutsTable();
+  updateSaveState();
 }
 
 // "Start with Windows" does not apply on Linux, where the same setting controls XDG autostart.
@@ -193,6 +226,8 @@ if (/linux/i.test(navigator.platform)) {
 }
 
 document.getElementById('saveBtn')?.addEventListener('click', save);
+document.addEventListener('input', updateSaveState);
+document.addEventListener('change', updateSaveState);
 document.getElementById('cancelBtn')?.addEventListener('click', () => window.settingsApi.closeSettings());
 document.getElementById('resetBtn')?.addEventListener('click', resetToDefaults);
 document.getElementById('previewNotif')?.addEventListener('click', () => window.settingsApi.previewNotification());
