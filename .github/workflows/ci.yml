@@ -134,9 +134,12 @@ jobs:
           name: linux-packages
           path: dist-installer-linux
       - name: Install, smoke test and remove inside ${{ matrix.image }}
-        # The Chromium sandbox needs user namespaces and seccomp inside the container; the default
-        # Docker profiles block both (spike S17).
+        # The Chromium sandbox needs unprivileged user namespaces inside the container. Docker's default
+        # seccomp/AppArmor profiles block them, and so does the Ubuntu runner's
+        # kernel.apparmor_restrict_unprivileged_userns=1, which applies to unconfined container processes
+        # as well. Fedora, Arch and Debian hosts allow them by default, so the runner is set to match (S17).
         run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           PKG=$(ls dist-installer-linux/${{ matrix.glob }} | head -1)
           docker run --rm --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
             -v "$PWD:/work" -w /work "${{ matrix.image }}" \
