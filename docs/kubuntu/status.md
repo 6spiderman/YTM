@@ -1,5 +1,7 @@
 # Status against the migration plan (updated 2026-10-05)
 
+> Superseded for 1.2.0 by `docs/linux/status.md` (multi-distro support). Kept as the record of the Kubuntu port.
+
 **Tests are not tracked in git** (owner's decision; the original `.gitignore` excluded `tests/`). The 103 tests live only in the local `tests/` folder of the working copies, so the GitHub CI skips the `jest` step (typecheck, lint, packaging, deb checks, smoke test and audit still run). The earlier commits that did contain `tests/` remain in git history.
 
 **Merged to `master` on 2026-10-05 (e83f1e6) at the owner's explicit request, before the Windows gates W-A and W-B were run.** CI on `feat/kubuntu` (commit 4a2251f, identical tree) is green: Windows job (typecheck, lint, 103 tests, real NSIS installer build with Electron 44.4.3, build-input guard), Ubuntu job (`.deb` build, static checks, install, smoke test with `apparmor_restrict_unprivileged_userns` at 1 and at 0) and the audit job. No release or `v1.1.0` tag exists; the Windows download remains 1.0.0 until W-A/W-B pass. To undo: revert the two merge commits or reset to tag `win-baseline-1.0.0`.
