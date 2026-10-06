@@ -16,7 +16,8 @@
     "build:linux:deb": "tsc && node scripts/bundle-renderer.js && cpx \"src/renderer/**/*.html\" dist/renderer && electron-builder --linux deb --x64 --config electron-builder.linux.yml --publish never"
   },
   "dependencies": {
-    "electron-store": "^8.0.0"
+    "electron-store": "^8.0.0",
+    "electron-updater": "6.8.9"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",
