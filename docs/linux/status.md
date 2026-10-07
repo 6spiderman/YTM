@@ -15,7 +15,7 @@ Owner decisions: the repository becomes public (needed by the unauthenticated Gi
 | 4 Taskbar progress | Done: proxy window on Windows (paused mode), player window on Linux via LauncherEntry |
 | 5 Native Wayland | Done: setting + relaunch from the x11 launcher, portal denials recorded, always-on-top disabled there |
 | 6 CI / snapshot / docs | CI uploads `latest*.yml` and blockmaps; Windows asar snapshot refreshed (S24: +21 expected lines, nothing removed). Docs updated |
-| 7 Release | **Published 2026-10-06** as https://github.com/6spiderman/YTM/releases/tag/v1.3.0 (PR #3 merged as 4348aa8) with `YTM-Setup-1.3.0.exe` + `.blockmap`, `latest.yml`, the four Linux packages, `latest-linux.yml` and `SHA512SUMS` from CI run 37496949709; every size and sha512 in the metadata was verified before upload. **USER:** Windows checks on 1.3.0, GNOME tester, Plasma keypress for native Wayland |
+| 7 Release | **Published 2026-10-06** as https://github.com/6spiderman/YTM/releases/tag/v1.3.0 (PR #3 merged as 4348aa8) with `YTM-Setup-1.3.0.exe` + `.blockmap`, `latest.yml`, the four Linux packages, `latest-linux.yml` and `SHA512SUMS` from CI run 37496949709; every size and sha512 in the metadata was verified before upload. Owner on Kubuntu (1.3.0 deb, 2026-10-06): maximised window keeps the controls visible, title-bar buttons work. **USER:** Windows checks on 1.3.0, GNOME tester, Plasma keypress for native Wayland, progress bar visible on the task manager |
 
 Spikes S20–S24: see `spikes.md`. Unit tests: 203 (`npx jest`).
 
